@@ -12,14 +12,20 @@ find_package(OpenGL REQUIRED)
 
 qt_standard_project_setup()
 
-set(CUDA_SOURCES
-    src/cuda_kernels.cu
-)
+function(make_includable input_file output_file)
+    file(READ ${input_file} content)
+    set(content "R\"(\n${content})\"")
+    file(WRITE ${output_file} "${content}")
+endfunction(make_includable)
+
+make_includable(src/shaders/fragment.glsl src/shaders/fragment.str)
+make_includable(src/shaders/vertex.glsl src/shaders/vertex.str)
 
 qt_add_executable(CudaFractal
     src/main.cpp
     src/OpenGLWidget.cpp src/OpenGLWidget.h
-    ${CUDA_SOURCES}
+    src/ShaderSrc.h
+    src/cuda_kernels.cu
 )
 
 set_target_properties(CudaFractal PROPERTIES

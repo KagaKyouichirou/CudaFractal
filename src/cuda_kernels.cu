@@ -1,4 +1,4 @@
-__global__ void mandelbrotKernel(uint16_t* points, double corner_x, double corner_y, double step, uint16_t limit) {
+__global__ void mandelbrotKernel(float* points, double corner_x, double corner_y, double step, uint16_t limit) {
     auto j = blockIdx.x * blockDim.x + threadIdx.x;
     auto i = blockIdx.y * blockDim.y + threadIdx.y;
     double e_x = corner_x + j * step;
@@ -16,33 +16,13 @@ __global__ void mandelbrotKernel(uint16_t* points, double corner_x, double corne
         k++;
     }
     int row_size = gridDim.x * blockDim.x;
-    points[j + i * row_size] = k;
-}
-
-__global__ void coloringKernel(uint16_t* points, uchar4* pixels, double unit) {
-    auto p = blockIdx.x * blockDim.x + threadIdx.x;
-    double t = log(static_cast<double>(points[p])) / unit;
-    pixels[p].w = 255;
-    pixels[p].x = static_cast<unsigned char>(256 * t);
-    pixels[p].y = static_cast<unsigned char>(256 * t * t * t);
-    pixels[p].z = static_cast<unsigned char>(128 * (1 - t * t * t * t));
+    points[j + i * row_size] = static_cast<float>(k) / limit;
 }
 
 extern "C" {
-    uint16_t* allocPoints(size_t size) {
-        uint16_t* ptr = nullptr;
-        auto status = cudaMalloc<uint16_t>(&ptr, size);
-        return ptr;
-    }
-
     void launchMandelbrotKernel(
-        dim3 sizeGrid, dim3 sizeBlock, uint16_t* points, double corner_x, double corner_y, double step, uint16_t limit
+        dim3 sizeGrid, dim3 sizeBlock, float* points, double corner_x, double corner_y, double step, uint16_t limit
     ) {
         mandelbrotKernel<<<sizeGrid, sizeBlock>>>(points, corner_x, corner_y, step, limit);
-    }
-
-    void launchColoringKernel(int sizeGrid, int sizeBlock, uint16_t* points, uchar4* pixels, uint16_t limit) {
-        double unit = log(static_cast<double>(limit));
-        coloringKernel<<<sizeGrid, sizeBlock>>>(points, pixels, unit);
     }
 }

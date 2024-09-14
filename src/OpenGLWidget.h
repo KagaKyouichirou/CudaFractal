@@ -3,7 +3,9 @@
 #include <cuda_runtime.h>
 
 #include <QImage>
+#include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
+#include <QOpenGLShaderProgram>
 #include <QOpenGLWidget>
 
 class OpenGLWidget: public QOpenGLWidget, protected QOpenGLFunctions {
@@ -22,4 +24,12 @@ private:
 
     GLuint pbo;
     cudaGraphicsResource* cudaPboResource;
+
+    QOpenGLShaderProgram* shaderProgram;
+    QOpenGLBuffer vbo;
+    int attrVertex;
+    int unifProjMatrix;
+    int unifPoints;
+
+    QMatrix4x4 projMatrix;
 };
