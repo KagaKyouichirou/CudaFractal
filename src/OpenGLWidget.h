@@ -17,6 +17,10 @@ class OpenGLWidget: public QOpenGLWidget, protected QOpenGLFunctions
 public:
     explicit OpenGLWidget(QWidget* parent = nullptr);
 
+public:
+    void slotZoomToFit();
+    void slotZoomToActualSize();
+
 protected:
     void mousePressEvent(QMouseEvent* event) override final;
     void mouseMoveEvent(QMouseEvent* event) override final;
@@ -29,7 +33,8 @@ protected:
     void resizeGL(int w, int h) override final;
 
 private:
-    void setScale(double scaleNew, QPointF coord);
+    void scaleAt(double scaleNew, QPointF coord);
+    void centerView();
 
 private:
     int viewportW;

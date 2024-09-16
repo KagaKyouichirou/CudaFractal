@@ -18,13 +18,43 @@ OpenGLWidget::OpenGLWidget(QWidget* parent):
     shaderProgram(nullptr)
 {}
 
-void OpenGLWidget::mousePressEvent(QMouseEvent* event)
+void OpenGLWidget::slotZoomToFit()
 {
-    flagDragging = true;
-    lastMousePos = devicePixelRatio() * event->position();
+    double factorW = static_cast<double>(viewportW) / texture->width();
+    double factorH = static_cast<double>(viewportH) / texture->height();
+    scale = std::min(factorW, factorH);
+    centerView();
 }
 
-void OpenGLWidget::mouseMoveEvent(QMouseEvent* event) {
+void OpenGLWidget::slotZoomToActualSize()
+{
+    scale = 1.0;
+    centerView();
+}
+
+void OpenGLWidget::mousePressEvent(QMouseEvent* event)
+{
+    switch (event->button()) {
+        case Qt::MouseButton::LeftButton:
+            flagDragging = true;
+            lastMousePos = devicePixelRatio() * event->position();
+            break;
+        case Qt::MouseButton::RightButton:
+            slotZoomToFit();
+            break;
+        case Qt::MouseButton::MiddleButton:
+            slotZoomToActualSize();
+            break;
+        default:
+            break;
+    }
+}
+
+void OpenGLWidget::mouseMoveEvent(QMouseEvent* event)
+{
+    if (!flagDragging) {
+        return;
+    }
     auto r = devicePixelRatio();
     translateX += r * event->x() - lastMousePos.x();
     translateY -= r * event->y() - lastMousePos.y();
@@ -32,11 +62,13 @@ void OpenGLWidget::mouseMoveEvent(QMouseEvent* event) {
     update();
 }
 
-void OpenGLWidget::mouseReleaseEvent(QMouseEvent* event) {
+void OpenGLWidget::mouseReleaseEvent(QMouseEvent* event)
+{
     flagDragging = false;
 }
 
-void OpenGLWidget::wheelEvent(QWheelEvent* event) {
+void OpenGLWidget::wheelEvent(QWheelEvent* event)
+{
     constexpr double factorIn = 1.125;
     constexpr double factorOut = 1.0 / factorIn;
     auto const& p = event->position();
@@ -44,7 +76,7 @@ void OpenGLWidget::wheelEvent(QWheelEvent* event) {
     coord.rx() -= translateX;
     coord.ry() -= translateY;
     auto scaleNew = scale * (event->angleDelta().y() > 0 ? factorIn : factorOut);
-    setScale(scaleNew, coord);
+    scaleAt(scaleNew, coord);
     update();
 }
 
@@ -53,10 +85,10 @@ void OpenGLWidget::initializeGL()
     initializeOpenGLFunctions();
     glEnable(GL_TEXTURE_2D);
 
-    dim3 sizeGrid(100, 100);
-    dim3 sizeBlock(16, 16);
-    int width = sizeGrid.x * sizeBlock.x;
-    int height = sizeGrid.y * sizeBlock.y;
+    dim3 dGrid(100, 100);
+    dim3 dBlock(16, 16);
+    int width = dGrid.x * dBlock.x;
+    int height = dGrid.y * dBlock.y;
 
     texture->create();
     texture->setFormat(QOpenGLTexture::R32F);
@@ -90,8 +122,8 @@ void OpenGLWidget::initializeGL()
         printf("!#\n");
     }
 
-    double half_step = 3.0 / (sizeGrid.x * sizeBlock.x * 2);
-    launchMandelbrotKernel(sizeGrid, sizeBlock, surf, -2.0 + half_step, -1.5 + half_step, half_step * 2, 400);
+    double half_step = 3.0 / (dGrid.x * dBlock.x * 2);
+    launchMandelbrotKernel(dGrid, dBlock, surf, -2.0 + half_step, -1.5 + half_step, half_step * 2, 400);
 
     cudaDeviceSynchronize();
     printf("!!\n");
@@ -145,11 +177,11 @@ void OpenGLWidget::paintGL()
     printf("paintGL\n");
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glViewport(0, 0, viewportW, viewportH);    
+    glViewport(0, 0, viewportW, viewportH);
 
     // clamp translate args
     // X
-    double scaledW = scale * texture->width();    
+    double scaledW = scale * texture->width();
     if (scaledW > viewportW) {
         translateX = std::clamp(translateX, viewportW - scaledW, 0.0);
     } else {
@@ -201,7 +233,8 @@ void OpenGLWidget::resizeGL(int w, int h)
     viewportH = static_cast<int>(h * r);
 }
 
-void OpenGLWidget::setScale(double scaleNew, QPointF coord) {
+void OpenGLWidget::scaleAt(double scaleNew, QPointF coord)
+{
     if (scaleNew > 4.0) {
         scaleNew = 4.0;
     } else if (scaleNew < 0.25) {
@@ -211,4 +244,11 @@ void OpenGLWidget::setScale(double scaleNew, QPointF coord) {
     scale = scaleNew;
     translateX += coord.x();
     translateY += coord.y();
+}
+
+void OpenGLWidget::centerView()
+{
+    translateX = (viewportW - scale * texture->width()) / 2;
+    translateY = (viewportH - scale * texture->height()) / 2;
+    update();
 }
