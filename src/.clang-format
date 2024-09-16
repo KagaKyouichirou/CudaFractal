@@ -19,13 +19,13 @@ BinPackArguments: true
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false
-  AfterClass: false
-  AfterStruct: false
+  AfterClass: true
+  AfterStruct: true
   AfterControlStatement: Never
-  AfterEnum: false
-  AfterFunction: false
-  AfterNamespace: false
-  AfterUnion: false
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterUnion: true
   AfterExternBlock: false
   BeforeCatch: false
   BeforeElse: false
@@ -36,8 +36,8 @@ BraceWrapping:
   SplitEmptyNamespace: false
 BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: true
-BreakConstructorInitializers: BeforeColon
-BreakInheritanceList: BeforeColon
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
 ColumnLimit: 120
 CompactNamespaces: false
 ContinuationIndentWidth: 4
