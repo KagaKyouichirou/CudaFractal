@@ -6,7 +6,8 @@ uniform mat4 projMatrix;
 
 out vec2 coord;
 
-void main() {
+void main()
+{
     gl_Position = projMatrix * vec4(vertexCoord, 0.0, 1.0);
     coord = textureCoord;
 }

@@ -5,7 +5,8 @@ uniform sampler2D points;
 in vec2 coord;
 out vec4 color;
 
-void main() {
+void main()
+{
     float t = texture(points, coord).r;
     float u = log(1 + 400 * t) / log(1 + 400.0);
 

@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 enable_language(CUDA)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Concurrent OpenGL OpenGLWidgets)
 find_package(OpenGL REQUIRED)
 
 qt_standard_project_setup()
@@ -23,8 +23,13 @@ make_includable(src/shaders/vertex.glsl src/shaders/vertex.str)
 
 qt_add_executable(CudaFractal
     src/main.cpp
-    src/OpenGLWidget.cpp src/OpenGLWidget.h
-    src/ShaderSrc.h
+    src/config.cpp
+    src/Controller.cpp
+    src/InputPane.cpp
+    src/TextureView.cpp
+    src/TextureScene.cpp
+    src/Renderer.cpp
+    src/TaskManager.cpp
     src/cuda_kernels.cu
 )
 
@@ -37,6 +42,7 @@ target_link_libraries(CudaFractal PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
+    Qt6::Concurrent
     Qt6::OpenGL
     Qt6::OpenGLWidgets
     OpenGL::GL

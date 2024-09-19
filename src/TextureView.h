@@ -1,5 +1,7 @@
 #pragma once
 
+#include "TextureScene.h"
+
 #include <cuda_runtime.h>
 
 #include <QImage>
@@ -10,16 +12,20 @@
 #include <QOpenGLTexture>
 #include <QOpenGLWidget>
 
-class OpenGLWidget: public QOpenGLWidget, protected QOpenGLFunctions
+class TextureView: public QOpenGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 
 public:
-    explicit OpenGLWidget(QWidget* parent = nullptr);
+    explicit TextureView();
 
 public:
+    void slotSceneRendered(TextureScene* ts);
     void slotZoomToFit();
     void slotZoomToActualSize();
+
+signals:
+    void signalInitialized();
 
 protected:
     void mousePressEvent(QMouseEvent* event) override final;
@@ -37,25 +43,16 @@ private:
     void centerView();
 
 private:
+    std::unique_ptr<TextureScene> scene;
     int viewportW;
     int viewportH;
-    double translateX;
-    double translateY;
-    double scale;
-
     bool flagDragging;
     QPointF lastMousePos;
 
-    std::unique_ptr<QOpenGLTexture> texture;
-
-    cudaGraphicsResource_t cudaSurfaceResource;
-
     QOpenGLShaderProgram* shaderProgram;
-    QOpenGLBuffer vbo;
+    QOpenGLBuffer vertexBuffer;
     int attrVertexCoord;
     int attrTextureCoord;
     int unifProjMatrix;
     int unifPoints;
-
-    QMatrix4x4 projMatrix;
 };
