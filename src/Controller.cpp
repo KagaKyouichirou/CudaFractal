@@ -46,27 +46,32 @@ Controller::Controller(): QObject(nullptr), pMainWindow(std::make_unique<QMainWi
         Qt::QueuedConnection
     );
     connect(
-        pInputPane, &InputPane::signalColorTuned,
-        pChannelTuner, &ChannelTuner::slotColorTuned,
+        pInputPane, &InputPane::signalSetSplineY,
+        pChannelTuner, &ChannelTuner::slotSetSplineY,
         Qt::DirectConnection
     );
     connect(
-        pTextureView, &TextureView::signalUploadColorMatrices,
-        pChannelTuner, &ChannelTuner::slotUploadColorMatrices,
+        pInputPane, &InputPane::signalUpdateSplineK,
+        pChannelTuner, &ChannelTuner::slotUpdateSplineK,
         Qt::DirectConnection
     );
     connect(
-        pChannelCurves, &ChannelCurves::signalUploadColorMatrices,
-        pChannelTuner, &ChannelTuner::slotUploadColorMatrices,
+        pTextureView, &TextureView::signalUploadSplines,
+        pChannelTuner, &ChannelTuner::slotUploadSplines,
         Qt::DirectConnection
     );
     connect(
-        pChannelTuner, &ChannelTuner::signalUpdate,
+        pChannelCurves, &ChannelCurves::signalUploadSplines,
+        pChannelTuner, &ChannelTuner::slotUploadSplines,
+        Qt::DirectConnection
+    );
+    connect(
+        pChannelTuner, &ChannelTuner::signalUpdateGL,
         pTextureView, static_cast<void (QWidget::*)()>(&QWidget::update),
         Qt::DirectConnection
     );
     connect(
-        pChannelTuner, &ChannelTuner::signalUpdate,
+        pChannelTuner, &ChannelTuner::signalUpdateGL,
         pChannelCurves, static_cast<void (QWidget::*)()>(&QWidget::update),
         Qt::DirectConnection
     );

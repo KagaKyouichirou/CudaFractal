@@ -158,9 +158,8 @@ void TextureView::initializeGL()
     attrTextureCoord = shaderProgram->attributeLocation("textureCoord");
     unifMatrixProj = shaderProgram->uniformLocation("matrixProj");
     unifPoints = shaderProgram->uniformLocation("points");
-    unifMatrixColorR = shaderProgram->uniformLocation("matrixColorR");
-    unifMatrixColorG = shaderProgram->uniformLocation("matrixColorG");
-    unifMatrixColorB = shaderProgram->uniformLocation("matrixColorB");
+    unifSplineY = shaderProgram->uniformLocation("splineY");
+    unifSplineK = shaderProgram->uniformLocation("splineK");
 }
 
 void TextureView::paintGL()
@@ -212,7 +211,7 @@ void TextureView::paintGL()
     shaderProgram->setUniformValue(unifMatrixProj, matrixProj);
 
     shaderProgram->setUniformValue(unifPoints, 0);
-    emit signalUploadColorMatrices(shaderProgram, unifMatrixColorR, unifMatrixColorG, unifMatrixColorB);
+    emit signalUploadSplines(shaderProgram, unifSplineY, unifSplineK);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

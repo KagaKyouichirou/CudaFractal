@@ -2,7 +2,6 @@
 
 #include <QObject>
 #include <QOpenGLShaderProgram>
-#
 
 class ChannelTuner: public QObject
 {
@@ -11,13 +10,15 @@ public:
     explicit ChannelTuner(QObject* parent);
 
 public:
-    void slotUploadColorMatrices(QOpenGLShaderProgram* shader, int unifR, int unifG, int unifB);
+    void slotUploadSplines(QOpenGLShaderProgram* shader, int unifSplineY, int unifSplineK);
 
-    void slotColorTuned(size_t channel, size_t idx, double f0, double f1, double d0, double d1);
+    void slotSetSplineY(size_t channel, size_t idx, double y);
+    void slotUpdateSplineK(size_t channel);
 
 signals:
-    void signalUpdate();
+    void signalUpdateGL();
 
 private:
-    std::array<QMatrix4x4, 3> matrixColor;
+    std::array<QVector3D, 7> splineY;
+    std::array<QVector3D, 7> splineK;
 };

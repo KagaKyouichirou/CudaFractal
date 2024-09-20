@@ -16,12 +16,12 @@ extern QString const DEFAULT_CENTER_X;
 extern QString const DEFAULT_CENTER_Y;
 extern QString const DEFAULT_HALF_UNIT;
 extern QString const DEFAULT_ITER_LIMIT;
-extern int const COLOR_RANGE_QUATER;
+extern int const COLOR_RANGE_SIXTH;
 }  // namespace ProjConf
 
 constexpr double HALF_PI_MINUS = 1.57075;
 
-static double const COLOR_NORM = 1.0 / (ProjConf::COLOR_RANGE_QUATER * 4);
+static double const COLOR_NORM = 1.0 / (ProjConf::COLOR_RANGE_SIXTH * 6);
 
 InputPane::InputPane():
     QScrollArea(nullptr),
@@ -32,7 +32,6 @@ InputPane::InputPane():
     inputIterLimit(new QLineEdit(nullptr)),
     bttnRender(new QPushButton(QStringLiteral("RENDER"), nullptr)),
     colorSampleValues(),
-    colorBoundaryFactors(),
     bttnResetColor(new QPushButton(QStringLiteral("RESET"), nullptr))
 {
     horizontalScrollBar()->setEnabled(false);
@@ -42,22 +41,18 @@ InputPane::InputPane():
 
     auto buildSlider = []() {
         auto slider = new QSlider(nullptr);
-        slider->setRange(0, ProjConf::COLOR_RANGE_QUATER * 4);
+        slider->setRange(0, ProjConf::COLOR_RANGE_SIXTH * 6);
         return slider;
     };
     for (size_t channel = 0; channel < 3; channel++) {
-        auto f = [this, channel]() {
-            tuneColor(channel);
-        };
-        auto& row = colorSampleValues[channel];
-        for (auto& slider : row) {
-            slider = buildSlider();
-            connect(slider, &QSlider::valueChanged, f);
+        for (size_t idx = 0; idx < 7; idx++) {
+            auto slider = buildSlider();
+            connect(slider, &QSlider::valueChanged, [this, channel, idx](int value) {
+                emit signalSetSplineY(channel, idx, static_cast<double>(value) * COLOR_NORM);
+                emit signalUpdateSplineK(channel);
+            });
+            colorSampleValues[channel][idx] = slider;
         }
-        colorBoundaryFactors[channel][0] = buildSlider();
-        connect(colorBoundaryFactors[channel][0], &QSlider::valueChanged, f);
-        colorBoundaryFactors[channel][1] = buildSlider();
-        connect(colorBoundaryFactors[channel][1], &QSlider::valueChanged, f);
     }
 
     setupLayout();
@@ -89,11 +84,15 @@ InputPane::InputPane():
 void InputPane::resetColorSliders()
 {
     for (size_t channel = 0; channel < 3; channel++) {
-        for (size_t idx = 0; idx < 5; idx++) {
-            colorSampleValues[channel][idx]->setValue(idx * ProjConf::COLOR_RANGE_QUATER);
+        for (size_t idx = 0; idx < 7; idx++) {
+            auto value = idx * ProjConf::COLOR_RANGE_SIXTH;
+            auto& slider = colorSampleValues[channel][idx];
+            slider->blockSignals(true);
+            slider->setValue(value);
+            slider->blockSignals(false);
+            emit signalSetSplineY(channel, idx, static_cast<double>(value) * COLOR_NORM);
         }
-        colorBoundaryFactors[channel][0]->setValue(2 * ProjConf::COLOR_RANGE_QUATER);
-        colorBoundaryFactors[channel][1]->setValue(2 * ProjConf::COLOR_RANGE_QUATER);
+        emit signalUpdateSplineK(channel);
     }
 }
 
@@ -162,11 +161,9 @@ void InputPane::setupLayout()
     gridColor->setContentsMargins(8, 16, 8, 0);
 
     auto addSliderRow = [this, gridColor](int row, size_t channel) {
-        gridColor->addWidget(colorBoundaryFactors[channel][0], row, 0);
-        for (int idx = 0; idx < 5; idx++) {
-            gridColor->addWidget(colorSampleValues[channel][idx], row, idx + 1);
+        for (int idx = 0; idx < 7; idx++) {
+            gridColor->addWidget(colorSampleValues[channel][idx], row, idx);
         }
-        gridColor->addWidget(colorBoundaryFactors[channel][1], row, 6);
     };
 
     auto centeredLabel = [](QString const& text) {
@@ -194,27 +191,4 @@ constexpr double mean(double x, double y)
     return (x + y) / 2;
 }
 
-void InputPane::tuneColor(size_t channel)
-{
-    // f
-    auto f0 = COLOR_NORM * colorSampleValues[channel][0]->value();
-    auto f1 = COLOR_NORM * colorSampleValues[channel][1]->value();
-    auto f2 = COLOR_NORM * colorSampleValues[channel][2]->value();
-    auto f3 = COLOR_NORM * colorSampleValues[channel][3]->value();
-    auto f4 = COLOR_NORM * colorSampleValues[channel][4]->value();
-    // slope
-    auto s01 = f1 - f0;
-    auto s12 = f2 - f1;
-    auto s23 = f3 - f2;
-    auto s34 = f4 - f3;
-    // d
-    auto d0 = qTan(HALF_PI_MINUS * COLOR_NORM * colorBoundaryFactors[channel][0]->value()) * s01;
-    auto d1 = s01 * s12 > 0.0 ? mean(s01, s12) : 0.0;
-    auto d2 = s12 * s23 > 0.0 ? mean(s12, s23) : 0.0;
-    auto d3 = s23 * s34 > 0.0 ? mean(s23, s34) : 0.0;
-    auto d4 = qTan(HALF_PI_MINUS * COLOR_NORM * colorBoundaryFactors[channel][1]->value()) * s34;
-    emit signalColorTuned(channel, 0, f0, f1, d0, d1);
-    emit signalColorTuned(channel, 1, f1, f2, d1, d2);
-    emit signalColorTuned(channel, 2, f2, f3, d2, d3);
-    emit signalColorTuned(channel, 3, f3, f4, d3, d4);
-}
+void InputPane::tuneColor(size_t channel) {}

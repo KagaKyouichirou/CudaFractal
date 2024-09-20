@@ -44,9 +44,8 @@ void ChannelCurves::initializeGL()
         return;
     }
     attrVertexCoord = shaderProgram->attributeLocation("vertexCoord");
-    unifMatrixColorR = shaderProgram->uniformLocation("matrixColorR");
-    unifMatrixColorG = shaderProgram->uniformLocation("matrixColorG");
-    unifMatrixColorB = shaderProgram->uniformLocation("matrixColorB");
+    unifSplineY = shaderProgram->uniformLocation("splineY");
+    unifSplineK = shaderProgram->uniformLocation("splineK");
     unifStrokePeak = shaderProgram->uniformLocation("strokePeak");
     unifStrokeNorm = shaderProgram->uniformLocation("strokeNorm");
 }
@@ -64,7 +63,7 @@ void ChannelCurves::paintGL()
     shaderProgram->setAttributeBuffer(attrVertexCoord, GL_FLOAT, 0, 2, 0);
     vertexBuffer.release();
 
-    emit signalUploadColorMatrices(shaderProgram, unifMatrixColorR, unifMatrixColorG, unifMatrixColorB);
+    emit signalUploadSplines(shaderProgram, unifSplineY, unifSplineK);
     shaderProgram->setUniformValue(unifStrokePeak, ProjConf::CHANNEL_CURVES_STROKE_PEAK);
     auto norm = ProjConf::CHANNEL_CURVES_STROKE_NORM / static_cast<float>(devicePixelRatio());
     shaderProgram->setUniformValue(unifStrokeNorm, norm);

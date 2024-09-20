@@ -1,8 +1,8 @@
 #version 400 core
 
-uniform mat4 matrixColorR;
-uniform mat4 matrixColorG;
-uniform mat4 matrixColorB;
+uniform vec3 splineY[7];
+uniform vec3 splineK[7];
+
 uniform float strokePeak;
 uniform float strokeNorm;
 
@@ -11,43 +11,32 @@ out vec4 color;
 
 void main()
 {
-    float x = textureCoord.x;
-    int i = x == 4.0 ? 3 : int(x);
-    x -= i;
-    double x2 = x * x;
-    double x3 = x2 * x;
+    double t = double(textureCoord.x);
+    int i = t == 6.0 ? 5 : int(t);
+    t -= i;
+    
+    double e = 1.0 - t;
+    double t2 = t * t;
+    double t3 = t2 * t;
 
-    double ra = double(matrixColorR[i][0]);
-    double rb = double(matrixColorR[i][1]);
-    double rc = double(matrixColorR[i][2]);
-    double rd = double(matrixColorR[i][3]);
-    double ry = ra + rb * x + rc * x2 + rd * x3;
-    double rk = rb + 2 * rc * x + 3 * rd * x2;
-    double rh = abs(ry - textureCoord.y) * strokeNorm / sqrt(rk * rk + 1);
-    double r = clamp((1.0 - 4 * rh * rh) * strokePeak, 0.0, 1.0);
+    dvec3 y0 = dvec3(splineY[i]);
+    dvec3 y1 = dvec3(splineY[i + 1]);
+    dvec3 s = y1 - y0;
+    dvec3 a = dvec3(splineK[i]) - s;
+    dvec3 b = s - dvec3(splineK[i + 1]);
 
-    double ga = double(matrixColorG[i][0]);
-    double gb = double(matrixColorG[i][1]);
-    double gc = double(matrixColorG[i][2]);
-    double gd = double(matrixColorG[i][3]);
-    double gy = ga + gb * x + gc * x2 + gd * x3;
-    double gk = gb + 2 * gc * x + 3 * gd * x2;
-    double gh = abs(gy - textureCoord.y) * strokeNorm / sqrt(gk * gk + 1);
-    double g = clamp((1.0 - 4 * gh * gh) * strokePeak, 0.0, 1.0);
+    // interpolated values
+    dvec3 f = e * y0 + t * y1 + e * t * (e * a + t * b);
+    // 1st derivative
+    dvec3 q = s + (e - t) * (e * a + t * b) + e * t * (b - a);
+    // distance to tangent and normalized
+    dvec3 h = abs(f - textureCoord.y) * strokeNorm / sqrt(1.0 + q * q);
 
-    double ba = double(matrixColorB[i][0]);
-    double bb = double(matrixColorB[i][1]);
-    double bc = double(matrixColorB[i][2]);
-    double bd = double(matrixColorB[i][3]);
-    double by = ba + bb * x + bc * x2 + bd * x3;
-    double bk = bb + 2 * bc * x + 3 * bd * x2;
-    double bh = abs(by - textureCoord.y) * strokeNorm / sqrt(bk * bk + 1);
-    double b = clamp((1.0 - 4 * bh * bh) * strokePeak, 0.0, 1.0);
+    dvec3 rgb = clamp((1.0 - 4 * h * h) * strokePeak, 0.0, 1.0);
 
-    dvec3 rgb = dvec3(r, g, b);
     double l = length(rgb);
     if (l > 1.0) {
-        rgb /= l;
+        rgb *= 1.0 / l;
     }
 
     color = vec4(rgb, 1.0);

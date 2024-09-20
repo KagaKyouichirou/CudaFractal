@@ -11,7 +11,7 @@ public:
     explicit ChannelCurves();
 
 signals:
-    void signalUploadColorMatrices(QOpenGLShaderProgram* shader, int unifR, int unifG, int unifB);
+    void signalUploadSplines(QOpenGLShaderProgram* shader, int unifSplineY, int unifSplineK);
 
 protected:
     void initializeGL() override final;
@@ -26,9 +26,8 @@ private:
     QOpenGLBuffer vertexBuffer;
 
     int attrVertexCoord;
-    int unifMatrixColorR;
-    int unifMatrixColorG;
-    int unifMatrixColorB;
+    int unifSplineY;
+    int unifSplineK;
     int unifStrokePeak;
     int unifStrokeNorm;
 };

@@ -2,26 +2,30 @@
 
 uniform sampler2D points;
 
-uniform mat4 matrixColorR;
-uniform mat4 matrixColorG;
-uniform mat4 matrixColorB;
+uniform vec3 splineY[7];
+uniform vec3 splineK[7];
 
 in vec2 coord;
 out vec4 color;
 
 void main()
 {
-    double t = 4 * texture(points, coord).r;
-    if (t == 4.0) {
+    double t = 6 * double(texture(points, coord).r);
+    if (t == 6.0) {
         color = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
     int i = int(t);
     t -= i;
+    double e = 1.0 - t;
     double t2 = t * t;
     double t3 = t2 * t;
-    double r = double(matrixColorR[i][0]) + double(matrixColorR[i][1]) * t + double(matrixColorR[i][2]) * t2 + double(matrixColorR[i][3]) * t3;
-    double g = double(matrixColorG[i][0]) + double(matrixColorG[i][1]) * t + double(matrixColorG[i][2]) * t2 + double(matrixColorG[i][3]) * t3;
-    double b = double(matrixColorB[i][0]) + double(matrixColorB[i][1]) * t + double(matrixColorB[i][2]) * t2 + double(matrixColorB[i][3]) * t3;
-    color = vec4(r, g, b, 1.0);
+
+    dvec3 y0 = dvec3(splineY[i]);
+    dvec3 y1 = dvec3(splineY[i + 1]);
+    dvec3 s = y1 - y0;
+    dvec3 a = dvec3(splineK[i]) - s;
+    dvec3 b = s - dvec3(splineK[i + 1]);
+
+    color = vec4(clamp(e * y0 + t * y1 + e * t * (e * a + t * b), 0.0, 1.0), 1.0);
 }

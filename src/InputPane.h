@@ -22,7 +22,9 @@ public:
 signals:
     void signalAddTask(TaskArgs task);
     void signalStatusTemp(QString hint);
-    void signalColorTuned(size_t channel, size_t idx, double f0, double f1, double d0, double d1);
+
+    void signalSetSplineY(size_t channel, size_t idx, double y);
+    void signalUpdateSplineK(size_t channel);
 
 protected:
     void resizeEvent(QResizeEvent* event) override final;
@@ -40,8 +42,6 @@ private:
     QLineEdit* inputIterLimit;
     QPushButton* bttnRender;
 
-    // [R, G, B]
-    std::array<std::array<QSlider*, 5>, 3> colorSampleValues;
-    std::array<std::array<QSlider*, 2>, 3> colorBoundaryFactors;
+    std::array<std::array<QSlider*, 7>, 3> colorSampleValues;
     QPushButton* bttnResetColor;
 };

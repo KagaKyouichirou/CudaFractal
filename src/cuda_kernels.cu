@@ -17,7 +17,7 @@ __global__ void mandelbrotKernel(cudaSurfaceObject_t surf, double oX, double oY,
         k++;
     }
     auto res = static_cast<double>(k) / limit;
-    surf2Dwrite(static_cast<float>(4 * res), surf, x * sizeof(float), y, cudaBoundaryModeTrap);
+    surf2Dwrite(static_cast<float>(res), surf, x * sizeof(float), y, cudaBoundaryModeTrap);
 }
 
 __global__ void chessboardKernel(cudaSurfaceObject_t surf)

@@ -23,7 +23,7 @@ extern QString const DEFAULT_CENTER_Y {QStringLiteral("0.148")};
 extern QString const DEFAULT_HALF_UNIT {QStringLiteral("0.000002")};
 extern QString const DEFAULT_ITER_LIMIT {QStringLiteral("4000")};
 
-extern constexpr int COLOR_RANGE_QUATER = 1048576; // pow(2, 20)
+extern constexpr int COLOR_RANGE_SIXTH = 1048576; // pow(2, 20)
 
 extern QString const INPUT_PANE_STYLE {QStringLiteral(R"(
     * {
