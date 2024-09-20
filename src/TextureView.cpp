@@ -1,21 +1,29 @@
 #include "TextureView.h"
 
+#include "cuda_kernels.h"
+
 #include <windows.h>
-#include <cstdio>
 
 #include <cuda_gl_interop.h>
+#include <QDebug>
 #include <QtConcurrent>
-
-#include "ShaderSrc.h"
-#include "cuda_kernels.h"
 
 namespace ProjConf
 {
 extern QString const TEXTURE_VIEW_STYLE;
-}
+extern char const* SHADER_TEXTURE_VIEW_VERTEX;
+extern char const* SHADER_TEXTURE_VIEW_FRAGMENT;
+}  // namespace ProjConf
 
 TextureView::TextureView():
-    QOpenGLWidget(nullptr), scene(), shaderProgram(nullptr), vertexBuffer(QOpenGLBuffer::VertexBuffer)
+    QOpenGLWidget(nullptr),
+    scene(),
+    viewportW(0),
+    viewportH(0),
+    flagDragging(false),
+    lastMousePos(0.0, 0.0),
+    shaderProgram(nullptr),
+    vertexBuffer(QOpenGLBuffer::VertexBuffer)
 {
     setStyleSheet(ProjConf::TEXTURE_VIEW_STYLE);
 }
@@ -27,6 +35,7 @@ void TextureView::slotSceneRendered(TextureScene* ts)
     auto w = static_cast<GLfloat>(scene->width());
     auto h = static_cast<GLfloat>(scene->height());
     constexpr auto size = sizeof(GLfloat);
+    // update the model vertices
     vertexBuffer.bind();
     vertexBuffer.write(4 * size, &w, size);
     vertexBuffer.write(9 * size, &h, size);
@@ -116,6 +125,7 @@ void TextureView::wheelEvent(QWheelEvent* event)
 void TextureView::initializeGL()
 {
     initializeOpenGLFunctions();
+    glEnable(GL_TEXTURE_2D);
 
     // clang-format off
     // vertex coord + texture coord
@@ -131,37 +141,32 @@ void TextureView::initializeGL()
     vertexBuffer.allocate(vertices.constData(), vertices.count() * sizeof(GLfloat));
     vertexBuffer.release();
 
-    glEnable(GL_TEXTURE_2D);
-
     shaderProgram = new QOpenGLShaderProgram(this);
-    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, shaderSrcVertex)) {
-        printf("Vertex Shader Failed\n");
+    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, ProjConf::SHADER_TEXTURE_VIEW_VERTEX)) {
+        qDebug() << "Vertex Shader Failed";
         return;
     }
-    qDebug() << shaderProgram->log();
-    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, shaderSrcFragment)) {
-        printf("Fragment Shader Failed\n");
+    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, ProjConf::SHADER_TEXTURE_VIEW_FRAGMENT)) {
+        qDebug() << "Fragment Shader Failed";
         return;
     }
-    qDebug() << shaderProgram->log();
     if (!shaderProgram->link()) {
-        printf("Shader Program Failed To Link\n");
+        qDebug() << "Shader Program Failed To Link";
         return;
     }
-    qDebug() << shaderProgram->log();
     attrVertexCoord = shaderProgram->attributeLocation("vertexCoord");
     attrTextureCoord = shaderProgram->attributeLocation("textureCoord");
-    unifProjMatrix = shaderProgram->uniformLocation("projMatrix");
+    unifMatrixProj = shaderProgram->uniformLocation("matrixProj");
     unifPoints = shaderProgram->uniformLocation("points");
-
-    emit signalInitialized();
+    unifMatrixColorR = shaderProgram->uniformLocation("matrixColorR");
+    unifMatrixColorG = shaderProgram->uniformLocation("matrixColorG");
+    unifMatrixColorB = shaderProgram->uniformLocation("matrixColorB");
 }
 
 void TextureView::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, viewportW, viewportH);
-
     if (!scene) {
         return;
     }
@@ -186,17 +191,15 @@ void TextureView::paintGL()
     }
     scene->setTranslateY(tY);
 
-    qDebug() << tX << " " << tY;
-
-    QMatrix4x4 projMatrix;
-    projMatrix.ortho(0.0, viewportW, 0.0, viewportH, -1.0, 1.0);
-    projMatrix.translate(static_cast<int>(tX), static_cast<int>(tY));
-    projMatrix.scale(scene->scale());
+    QMatrix4x4 matrixProj;
+    matrixProj.ortho(0.0, viewportW, 0.0, viewportH, -1.0, 1.0);
+    matrixProj.translate(static_cast<int>(tX), static_cast<int>(tY));
+    matrixProj.scale(scene->scale());
 
     scene->bindTexture();
 
     if (!shaderProgram->bind()) {
-        printf("Shader Program Failed To Bind\n");
+        qDebug() << "Shader Program Failed To Bind";
         return;
     }
     shaderProgram->enableAttributeArray(attrVertexCoord);
@@ -206,9 +209,10 @@ void TextureView::paintGL()
     shaderProgram->setAttributeBuffer(attrVertexCoord, GL_FLOAT, 0, 2, 4 * sizeof(GLfloat));
     shaderProgram->setAttributeBuffer(attrTextureCoord, GL_FLOAT, 2 * sizeof(GLfloat), 2, 4 * sizeof(GLfloat));
     vertexBuffer.release();
-    shaderProgram->setUniformValue(unifProjMatrix, projMatrix);
+    shaderProgram->setUniformValue(unifMatrixProj, matrixProj);
 
     shaderProgram->setUniformValue(unifPoints, 0);
+    emit signalUploadColorMatrices(shaderProgram, unifMatrixColorR, unifMatrixColorG, unifMatrixColorB);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -221,7 +225,6 @@ void TextureView::paintGL()
 
 void TextureView::resizeGL(int w, int h)
 {
-    qDebug() << "TextureView Resized";
     auto r = devicePixelRatio();
     viewportW = static_cast<int>(w * r);
     viewportH = static_cast<int>(h * r);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QOpenGLBuffer>
 #include <QOpenGLTexture>
 
 class TextureScene

@@ -12,26 +12,20 @@ find_package(OpenGL REQUIRED)
 
 qt_standard_project_setup()
 
-function(make_includable input_file output_file)
-    file(READ ${input_file} content)
-    set(content "R\"(\n${content})\"")
-    file(WRITE ${output_file} "${content}")
-endfunction(make_includable)
+set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
-make_includable(src/shaders/fragment.glsl src/shaders/fragment.str)
-make_includable(src/shaders/vertex.glsl src/shaders/vertex.str)
-
-qt_add_executable(CudaFractal
-    src/main.cpp
-    src/config.cpp
-    src/Controller.cpp
-    src/InputPane.cpp
-    src/TextureView.cpp
-    src/TextureScene.cpp
-    src/Renderer.cpp
-    src/TaskManager.cpp
-    src/cuda_kernels.cu
+file(GLOB SOURCES
+    "${SRC_DIR}/*.cpp"
+    "${SRC_DIR}/*.cu"
 )
+
+qt_add_executable(CudaFractal ${SOURCES})
+
+add_custom_target(WrapGlslAsLiteral
+    COMMAND ${CMAKE_COMMAND} -D SRC_DIR=${SRC_DIR} -P ${CMAKE_SOURCE_DIR}/wrap_glsl_as_literal.cmake
+    COMMENT "Wrapping .glsl files..."
+)
+add_dependencies(CudaFractal WrapGlslAsLiteral)
 
 set_target_properties(CudaFractal PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
@@ -47,3 +41,5 @@ target_link_libraries(CudaFractal PRIVATE
     Qt6::OpenGLWidgets
     OpenGL::GL
 )
+
+target_link_options(CudaFractal PRIVATE /NODEFAULTLIB:LIBCMT)

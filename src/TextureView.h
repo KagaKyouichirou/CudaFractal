@@ -3,7 +3,6 @@
 #include "TextureScene.h"
 
 #include <cuda_runtime.h>
-
 #include <QImage>
 #include <QMouseEvent>
 #include <QOpenGLBuffer>
@@ -25,7 +24,7 @@ public:
     void slotZoomToActualSize();
 
 signals:
-    void signalInitialized();
+    void signalUploadColorMatrices(QOpenGLShaderProgram* shader, int unifR, int unifG, int unifB);
 
 protected:
     void mousePressEvent(QMouseEvent* event) override final;
@@ -48,11 +47,14 @@ private:
     int viewportH;
     bool flagDragging;
     QPointF lastMousePos;
-
+    
     QOpenGLShaderProgram* shaderProgram;
     QOpenGLBuffer vertexBuffer;
     int attrVertexCoord;
     int attrTextureCoord;
-    int unifProjMatrix;
+    int unifMatrixProj;
     int unifPoints;
+    int unifMatrixColorR;
+    int unifMatrixColorG;
+    int unifMatrixColorB;
 };

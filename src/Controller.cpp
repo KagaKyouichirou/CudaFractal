@@ -1,10 +1,12 @@
 #include "Controller.h"
 
+#include "ChannelCurves.h"
+#include "ChannelTuner.h"
 #include "InputPane.h"
 #include "TaskManager.h"
 #include "TextureView.h"
 
-#include <QHBoxLayout>
+#include <QGridLayout>
 
 namespace ProjConf
 {
@@ -17,15 +19,21 @@ Controller::Controller(): QObject(nullptr), pMainWindow(std::make_unique<QMainWi
 
     auto pInputPane = new InputPane();
     auto pTextureView = new TextureView();
+    auto pChannelCurves = new ChannelCurves();
 
-    auto hbox = new QHBoxLayout(central);
-    hbox->setContentsMargins(0, 0, 0, 0);
-    hbox->addWidget(pInputPane, 2);
-    hbox->addWidget(pTextureView, 7);
+    auto grid = new QGridLayout(central);
+    grid->setColumnStretch(0, 2);
+    grid->setColumnStretch(1, 7);
+    grid->setRowStretch(0, 1);
+    grid->setRowStretch(1, 1);
+    grid->addWidget(pInputPane, 0, 0);
+    grid->addWidget(pChannelCurves, 1, 0);
+    grid->addWidget(pTextureView, 0, 1, 2, 1);
 
     pMainWindow->setCentralWidget(central);
 
     auto pTaskManager = new TaskManager(this);
+    auto pChannelTuner = new ChannelTuner(this);
     // clang-format off
     connect(
         pInputPane, &InputPane::signalAddTask,
@@ -37,8 +45,35 @@ Controller::Controller(): QObject(nullptr), pMainWindow(std::make_unique<QMainWi
         pTextureView, &TextureView::slotSceneRendered,
         Qt::QueuedConnection
     );
+    connect(
+        pInputPane, &InputPane::signalColorTuned,
+        pChannelTuner, &ChannelTuner::slotColorTuned,
+        Qt::DirectConnection
+    );
+    connect(
+        pTextureView, &TextureView::signalUploadColorMatrices,
+        pChannelTuner, &ChannelTuner::slotUploadColorMatrices,
+        Qt::DirectConnection
+    );
+    connect(
+        pChannelCurves, &ChannelCurves::signalUploadColorMatrices,
+        pChannelTuner, &ChannelTuner::slotUploadColorMatrices,
+        Qt::DirectConnection
+    );
+    connect(
+        pChannelTuner, &ChannelTuner::signalUpdate,
+        pTextureView, static_cast<void (QWidget::*)()>(&QWidget::update),
+        Qt::DirectConnection
+    );
+    connect(
+        pChannelTuner, &ChannelTuner::signalUpdate,
+        pChannelCurves, static_cast<void (QWidget::*)()>(&QWidget::update),
+        Qt::DirectConnection
+    );
     // clang-format on
     connect(pInputPane, &InputPane::signalStatusTemp, [](QString hint) { qDebug() << hint; });
+
+    pInputPane->resetColorSliders();
 }
 
 void Controller::start()

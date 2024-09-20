@@ -24,7 +24,7 @@ public:
 
 signals:
     void signalRunTask(TaskArgs task, cudaGraphicsResource* resource);
-    void signalSceneRendered(TextureScene* scene);
+    void signalSceneRendered(TextureScene* ts);
 
 private:
     void runTask();
