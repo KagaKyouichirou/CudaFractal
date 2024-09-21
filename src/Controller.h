@@ -1,8 +1,13 @@
 #pragma once
 
-#include <vector_types.h>
+#include "ChannelPane.h"
+#include "InputPane.h"
+#include "TaskManager.h"
+#include "TextureView.h"
+
 #include <QMainWindow>
 #include <QObject>
+#include <memory>
 
 class Controller: public QObject
 {
@@ -10,10 +15,15 @@ class Controller: public QObject
 
 public:
     explicit Controller();
-    ~Controller() = default;
+    virtual ~Controller() = default;
 
     void start();
 
 private:
     std::unique_ptr<QMainWindow> pMainWindow;
+
+    InputPane* pInputPane;
+    ChannelPane* pChannelPane;
+    TextureView* pTextureView;
+    std::unique_ptr<TaskManager> uTaskManager;
 };

@@ -6,8 +6,8 @@
 
 #include <QDebug>
 
-TaskManager::TaskManager(QObject* parent):
-    QObject(parent),
+TaskManager::TaskManager():
+    QObject(nullptr),
     thread(std::make_unique<QThread>()),
     renderer(std::make_unique<Renderer>()),
     flagBusy(false),

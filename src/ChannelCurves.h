@@ -5,13 +5,16 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLWidget>
 
-class ChannelCurves: public QOpenGLWidget, protected QOpenGLFunctions {
+class ChannelCurves: public QOpenGLWidget, protected QOpenGLFunctions
+{
     Q_OBJECT
+
 public:
     explicit ChannelCurves();
+    virtual ~ChannelCurves() = default;
 
 signals:
-    void signalUploadSplines(QOpenGLShaderProgram* shader, int unifSplineY, int unifSplineK);
+    void signalUploadUnif(QOpenGLShaderProgram* shader, int unifLogNormFactor, int unifSplineY, int unifSplineK);
 
 protected:
     void initializeGL() override final;
@@ -26,8 +29,10 @@ private:
     QOpenGLBuffer vertexBuffer;
 
     int attrVertexCoord;
+    int unifLogNormFactor;
     int unifSplineY;
     int unifSplineK;
     int unifStrokePeak;
     int unifStrokeNorm;
+    int unifAspectRatio;
 };

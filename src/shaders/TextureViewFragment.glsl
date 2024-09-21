@@ -2,6 +2,7 @@
 
 uniform sampler2D points;
 
+uniform float logNormFactor;
 uniform vec3 splineY[7];
 uniform vec3 splineK[7];
 
@@ -10,11 +11,12 @@ out vec4 color;
 
 void main()
 {
-    double t = 6 * double(texture(points, coord).r);
-    if (t == 6.0) {
+    float u = texture(points, coord).r;
+    if (u == 1.0) {
         color = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
+    double t = double(6.0) * log(logNormFactor * u + 1.0) / log(logNormFactor + 1.0);
     int i = int(t);
     t -= i;
     double e = 1.0 - t;

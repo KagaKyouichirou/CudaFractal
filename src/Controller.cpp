@@ -1,84 +1,59 @@
 #include "Controller.h"
 
-#include "ChannelCurves.h"
-#include "ChannelTuner.h"
-#include "InputPane.h"
-#include "TaskManager.h"
-#include "TextureView.h"
-
-#include <QGridLayout>
+#include <QDockWidget>
+#include <QTabWidget>
 
 namespace ProjConf
 {
 extern QSize const DEFAULT_MAINWINDOW_SIZE;
 }  // namespace ProjConf
 
-Controller::Controller(): QObject(nullptr), pMainWindow(std::make_unique<QMainWindow>(nullptr, Qt::Window))
+Controller::Controller():
+    QObject(nullptr),
+    pMainWindow(std::make_unique<QMainWindow>(nullptr, Qt::Window)),
+    pInputPane(new InputPane()),
+    pChannelPane(new ChannelPane()),
+    pTextureView(new TextureView()),
+    uTaskManager(std::make_unique<TaskManager>())
 {
-    auto central = new QWidget;
 
-    auto pInputPane = new InputPane();
-    auto pTextureView = new TextureView();
-    auto pChannelCurves = new ChannelCurves();
+    auto tabs = new QTabWidget(nullptr);
+    tabs->addTab(pInputPane, QStringLiteral("Calculation Input"));
+    tabs->addTab(pChannelPane, QStringLiteral("Color Channels"));
 
-    auto grid = new QGridLayout(central);
-    grid->setColumnStretch(0, 2);
-    grid->setColumnStretch(1, 7);
-    grid->setRowStretch(0, 1);
-    grid->setRowStretch(1, 1);
-    grid->addWidget(pInputPane, 0, 0);
-    grid->addWidget(pChannelCurves, 1, 0);
-    grid->addWidget(pTextureView, 0, 1, 2, 1);
+    auto pane = new QDockWidget(QStringLiteral("Controlling Pane"), nullptr);
+    pane->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    pane->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    pane->setFloating(false);
+    pane->setWidget(tabs);
 
-    pMainWindow->setCentralWidget(central);
+    pMainWindow->setCentralWidget(pTextureView);
+    pMainWindow->addDockWidget(Qt::LeftDockWidgetArea, pane);
+    pMainWindow->setAnimated(false);
 
-    auto pTaskManager = new TaskManager(this);
-    auto pChannelTuner = new ChannelTuner(this);
     // clang-format off
     connect(
         pInputPane, &InputPane::signalAddTask,
-        pTaskManager, &TaskManager::slotAddTask,
+        uTaskManager.get(), &TaskManager::slotAddTask,
         Qt::QueuedConnection
     );
     connect(
-        pTaskManager, &TaskManager::signalSceneRendered,
+        uTaskManager.get(), &TaskManager::signalSceneRendered,
         pTextureView, &TextureView::slotSceneRendered,
         Qt::QueuedConnection
     );
     connect(
-        pInputPane, &InputPane::signalSetSplineY,
-        pChannelTuner, &ChannelTuner::slotSetSplineY,
+        pTextureView, &TextureView::signalUploadUnif,
+        pChannelPane, &ChannelPane::slotUploadUnif,
         Qt::DirectConnection
     );
     connect(
-        pInputPane, &InputPane::signalUpdateSplineK,
-        pChannelTuner, &ChannelTuner::slotUpdateSplineK,
-        Qt::DirectConnection
-    );
-    connect(
-        pTextureView, &TextureView::signalUploadSplines,
-        pChannelTuner, &ChannelTuner::slotUploadSplines,
-        Qt::DirectConnection
-    );
-    connect(
-        pChannelCurves, &ChannelCurves::signalUploadSplines,
-        pChannelTuner, &ChannelTuner::slotUploadSplines,
-        Qt::DirectConnection
-    );
-    connect(
-        pChannelTuner, &ChannelTuner::signalUpdateGL,
+        pChannelPane, &ChannelPane::signalUpdateGraphics,
         pTextureView, static_cast<void (QWidget::*)()>(&QWidget::update),
-        Qt::DirectConnection
-    );
-    connect(
-        pChannelTuner, &ChannelTuner::signalUpdateGL,
-        pChannelCurves, static_cast<void (QWidget::*)()>(&QWidget::update),
         Qt::DirectConnection
     );
     // clang-format on
     connect(pInputPane, &InputPane::signalStatusTemp, [](QString hint) { qDebug() << hint; });
-
-    pInputPane->resetColorSliders();
 }
 
 void Controller::start()

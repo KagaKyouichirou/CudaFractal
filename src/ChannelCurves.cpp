@@ -1,6 +1,7 @@
 #include "ChannelCurves.h"
 
 #include <QDebug>
+#include <QtMath>
 
 namespace ProjConf
 {
@@ -44,10 +45,12 @@ void ChannelCurves::initializeGL()
         return;
     }
     attrVertexCoord = shaderProgram->attributeLocation("vertexCoord");
+    unifLogNormFactor = shaderProgram->uniformLocation("logNormFactor");
     unifSplineY = shaderProgram->uniformLocation("splineY");
     unifSplineK = shaderProgram->uniformLocation("splineK");
     unifStrokePeak = shaderProgram->uniformLocation("strokePeak");
     unifStrokeNorm = shaderProgram->uniformLocation("strokeNorm");
+    unifAspectRatio = shaderProgram->uniformLocation("aspectRatio");
 }
 
 void ChannelCurves::paintGL()
@@ -63,10 +66,12 @@ void ChannelCurves::paintGL()
     shaderProgram->setAttributeBuffer(attrVertexCoord, GL_FLOAT, 0, 2, 0);
     vertexBuffer.release();
 
-    emit signalUploadSplines(shaderProgram, unifSplineY, unifSplineK);
+    emit signalUploadUnif(shaderProgram, unifLogNormFactor, unifSplineY, unifSplineK);
     shaderProgram->setUniformValue(unifStrokePeak, ProjConf::CHANNEL_CURVES_STROKE_PEAK);
     auto norm = ProjConf::CHANNEL_CURVES_STROKE_NORM / static_cast<float>(devicePixelRatio());
     shaderProgram->setUniformValue(unifStrokeNorm, norm);
+    auto aspectRatio = static_cast<float>(viewportH) / viewportW;
+    shaderProgram->setUniformValue(unifAspectRatio, aspectRatio);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

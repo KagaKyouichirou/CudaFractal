@@ -15,8 +15,8 @@ class TaskManager: public QObject
     Q_OBJECT
 
 public:
-    explicit TaskManager(QObject* parent);
-    ~TaskManager();
+    explicit TaskManager();
+    virtual ~TaskManager();
 
 public:
     void slotAddTask(TaskArgs task);

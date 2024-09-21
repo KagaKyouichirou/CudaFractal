@@ -4,20 +4,15 @@
 
 #include <QComboBox>
 #include <QLineEdit>
-#include <QMatrix4x4>
 #include <QPushButton>
-#include <QResizeEvent>
-#include <QScrollArea>
-#include <QSlider>
 
-class InputPane: public QScrollArea
+class InputPane: public QWidget
 {
     Q_OBJECT
 
 public:
     explicit InputPane();
-
-    void resetColorSliders();
+    virtual ~InputPane() = default;
 
 signals:
     void signalAddTask(TaskArgs task);
@@ -26,13 +21,10 @@ signals:
     void signalSetSplineY(size_t channel, size_t idx, double y);
     void signalUpdateSplineK(size_t channel);
 
-protected:
-    void resizeEvent(QResizeEvent* event) override final;
-
-private:
+private:    
     void render();
+
     void setupLayout();
-    void tuneColor(size_t channel);
 
 private:
     QComboBox* inputDimOption;
@@ -41,7 +33,4 @@ private:
     QLineEdit* inputHalfUnit;
     QLineEdit* inputIterLimit;
     QPushButton* bttnRender;
-
-    std::array<std::array<QSlider*, 7>, 3> colorSampleValues;
-    QPushButton* bttnResetColor;
 };

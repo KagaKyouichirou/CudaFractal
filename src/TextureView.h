@@ -24,7 +24,7 @@ public:
     void slotZoomToActualSize();
 
 signals:
-    void signalUploadSplines(QOpenGLShaderProgram* shader, int unifSplineY, int unifSplineK);
+    void signalUploadUnif(QOpenGLShaderProgram* shader, int unifLogNormFactor, int unifSplineY, int unifSplineK);
 
 protected:
     void mousePressEvent(QMouseEvent* event) override final;
@@ -54,6 +54,7 @@ private:
     int attrTextureCoord;
     int unifMatrixProj;
     int unifPoints;
+    int unifLogNormFactor;
     int unifSplineY;
     int unifSplineK;
 };

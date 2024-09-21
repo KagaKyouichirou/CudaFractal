@@ -55,6 +55,7 @@ MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: true
+PackConstructorInitializers: CurrentLine
 PointerAlignment: Left
 QualifierAlignment: Right
 ReflowComments: false
