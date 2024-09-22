@@ -15,7 +15,7 @@ public:
     virtual ~ChannelPane() override final = default;
 
 public:
-    void slotUploadUnif(QOpenGLShaderProgram* shader, int unifLogNormFactor, int unifSplineY, int unifSplineK);
+    void slotUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);
 
 signals:
     void signalUpdateGraphics();
@@ -31,7 +31,8 @@ private:
     QPushButton* bttnResetColor;
     ChannelCurves* pChannelCurves;
 
-    double logNormFactor;
+    double logFactor;
+    double logNorm;
 
     std::array<QVector3D, 7> splineY;
     std::array<QVector3D, 7> splineK;

@@ -32,7 +32,7 @@ extern QString const INPUT_PANE_STYLE{QStringLiteral(R"(
     }
 
     QLineEdit {
-        background: #8F8F8F;
+        background: #D0D0D0;
         border: none;
     }
 )")};
@@ -57,6 +57,8 @@ extern QString const CHANNEL_PANE_STYLE{QStringLiteral(R"(
 
 )")};
 
+extern constexpr int COLOR_SLIDER_HALF_WIDTH = 10;
+
 extern QString const TEXTURE_VIEW_STYLE{QStringLiteral(R"(
     min-width: 200px;
     min-height: 200px;
@@ -76,7 +78,7 @@ extern char const* SHADER_TEXTURE_VIEW_FRAGMENT =
     ;
 
 extern constexpr float CHANNEL_CURVES_STROKE_PEAK = 1.5;
-extern constexpr float CHANNEL_CURVES_STROKE_NORM = 1.0 / 0.0125;
+extern constexpr float CHANNEL_CURVES_STROKE_NORM = 1.0 / 4;
 
 extern char const* SHADER_CHANNEL_CURVES_VERTEX =
 #include "shaders/ChannelCurvesVertex.str"

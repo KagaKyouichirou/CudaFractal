@@ -2,15 +2,13 @@
 
 #include <QOpenGLTexture>
 
-class TextureScene
+class TextureScene: public QOpenGLTexture
 {
 public:
-    explicit TextureScene(std::unique_ptr<QOpenGLTexture> rendered);
+    explicit TextureScene(QOpenGLTexture::Target target);
+    ~TextureScene() = default;
 
 public:
-    int width() const;
-    int height() const;
-
     double translateX() const;
     double translateY() const;
     double scale() const;
@@ -19,18 +17,13 @@ public:
     void setTranslateY(double tY);
     void setScale(double s);
 
-    void bindTexture();
-    void releaseTexture();
-
 public:
     TextureScene(TextureScene const&) = delete;
     TextureScene& operator=(TextureScene const&) = delete;
-    TextureScene(TextureScene&&) = default;
-    TextureScene& operator=(TextureScene&&) = default;
+    TextureScene(TextureScene&&) = delete;
+    TextureScene& operator=(TextureScene&&) = delete;
 
 private:
-    std::unique_ptr<QOpenGLTexture> texture;
-    
     double tX;
     double tY;
     double s;

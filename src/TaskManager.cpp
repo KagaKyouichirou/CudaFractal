@@ -11,7 +11,7 @@ TaskManager::TaskManager():
     thread(std::make_unique<QThread>()),
     renderer(std::make_unique<Renderer>()),
     flagBusy(false),
-    texture(),
+    scene(),
     surfaceResource(nullptr),
     queued()
 {
@@ -46,9 +46,7 @@ void TaskManager::slotTaskFinished()
     cudaGraphicsUnregisterResource(surfaceResource);
     surfaceResource = nullptr;
 
-    auto scene = new TextureScene(std::move(texture));
-
-    emit signalSceneRendered(scene);
+    emit signalSceneRendered(scene.release());
 
     if (queued.limit > 0) {
         qDebug() << "queued task found";
@@ -65,19 +63,19 @@ void TaskManager::runTask()
     int width = queued.dGrid.x * queued.dBlock.x;
     int height = queued.dGrid.y * queued.dBlock.y;
 
-    texture = std::make_unique<QOpenGLTexture, QOpenGLTexture::Target>(QOpenGLTexture::Target2D);
-    texture->create();
-    texture->setFormat(QOpenGLTexture::R32F);
-    texture->setSize(width, height);
-    texture->allocateStorage(QOpenGLTexture::Red, QOpenGLTexture::Float32);
-    texture->setMinificationFilter(QOpenGLTexture::Linear);
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    texture->setWrapMode(QOpenGLTexture::ClampToEdge);
+    scene = std::make_unique<TextureScene>(QOpenGLTexture::Target2D);
+    scene->create();
+    scene->setFormat(QOpenGLTexture::R32F);
+    scene->setSize(width, height);
+    scene->allocateStorage(QOpenGLTexture::Red, QOpenGLTexture::Float32);
+    scene->setMinificationFilter(QOpenGLTexture::Linear);
+    scene->setMagnificationFilter(QOpenGLTexture::Linear);
+    scene->setWrapMode(QOpenGLTexture::WrapMode::ClampToEdge);
 
     qDebug() << "Texture Allocated";
 
     cudaGraphicsGLRegisterImage(
-        &surfaceResource, texture->textureId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore
+        &surfaceResource, scene->textureId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore
     );
     cudaGraphicsMapResources(1, &surfaceResource);
 

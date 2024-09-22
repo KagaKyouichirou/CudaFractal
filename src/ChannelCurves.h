@@ -14,7 +14,7 @@ public:
     virtual ~ChannelCurves() = default;
 
 signals:
-    void signalUploadUnif(QOpenGLShaderProgram* shader, int unifLogNormFactor, int unifSplineY, int unifSplineK);
+    void signalUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);
 
 protected:
     void initializeGL() override final;
@@ -29,9 +29,10 @@ private:
     QOpenGLBuffer vertexBuffer;
 
     int attrVertexCoord;
-    int unifLogNormFactor;
-    int unifSplineY;
-    int unifSplineK;
+    int unifLogF;
+    int unifLogN;
+    int unifSpY;
+    int unifSpK;
     int unifStrokePeak;
     int unifStrokeNorm;
     int unifAspectRatio;

@@ -7,7 +7,6 @@
 
 #include <QMainWindow>
 #include <QObject>
-#include <memory>
 
 class Controller: public QObject
 {
@@ -20,7 +19,7 @@ public:
     void start();
 
 private:
-    std::unique_ptr<QMainWindow> pMainWindow;
+    std::unique_ptr<QMainWindow> uMainWindow;
 
     InputPane* pInputPane;
     ChannelPane* pChannelPane;

@@ -6,7 +6,6 @@
 
 #include <cuda_gl_interop.h>
 #include <QDebug>
-#include <QtConcurrent>
 
 namespace ProjConf
 {
@@ -158,9 +157,10 @@ void TextureView::initializeGL()
     attrTextureCoord = shaderProgram->attributeLocation("textureCoord");
     unifMatrixProj = shaderProgram->uniformLocation("matrixProj");
     unifPoints = shaderProgram->uniformLocation("points");
-    unifLogNormFactor = shaderProgram->uniformLocation("logNormFactor");
-    unifSplineY = shaderProgram->uniformLocation("splineY");
-    unifSplineK = shaderProgram->uniformLocation("splineK");
+    unifLogF = shaderProgram->uniformLocation("logFactor");
+    unifLogN = shaderProgram->uniformLocation("logNorm");
+    unifSpY = shaderProgram->uniformLocation("splineY");
+    unifSpK = shaderProgram->uniformLocation("splineK");
 }
 
 void TextureView::paintGL()
@@ -196,7 +196,7 @@ void TextureView::paintGL()
     matrixProj.translate(static_cast<int>(tX), static_cast<int>(tY));
     matrixProj.scale(scene->scale());
 
-    scene->bindTexture();
+    scene->bind();
 
     if (!shaderProgram->bind()) {
         qDebug() << "Shader Program Failed To Bind";
@@ -212,7 +212,7 @@ void TextureView::paintGL()
     shaderProgram->setUniformValue(unifMatrixProj, matrixProj);
 
     shaderProgram->setUniformValue(unifPoints, 0);
-    emit signalUploadUnif(shaderProgram, unifLogNormFactor, unifSplineY, unifSplineK);
+    emit signalUploadUnif(shaderProgram, unifLogF, unifLogN, unifSpY, unifSpK);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -220,14 +220,21 @@ void TextureView::paintGL()
     shaderProgram->disableAttributeArray(attrTextureCoord);
     shaderProgram->release();
 
-    scene->releaseTexture();
+    scene->release();
 }
 
 void TextureView::resizeGL(int w, int h)
 {
     auto r = devicePixelRatio();
-    viewportW = static_cast<int>(w * r);
-    viewportH = static_cast<int>(h * r);
+    w = static_cast<int>(w * r);
+    h = static_cast<int>(h * r);
+    if (scene) {
+        // pin the center
+        scene->setTranslateX(scene->translateX() + (w - viewportW) / 2);
+        scene->setTranslateY(scene->translateY() + (h - viewportH) / 2);
+    }
+    viewportW = w;
+    viewportH = h;
 }
 
 void TextureView::scaleAt(double scaleNew, QPointF coord)

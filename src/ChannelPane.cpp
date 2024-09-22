@@ -2,6 +2,7 @@
 
 #include <QGridLayout>
 #include <QtMath>
+#include <QSizePolicy>
 
 namespace ProjConf
 {
@@ -9,6 +10,7 @@ extern double const LOG_NORM_SLIDER_SCALE;
 extern int const LOG_NORM_SLIDER_RANGE;
 extern int const COLOR_RANGE_SIXTH;
 extern QString const CHANNEL_PANE_STYLE;
+extern int const COLOR_SLIDER_HALF_WIDTH;
 }  // namespace ProjConf
 
 static double const COLOR_NORM = 1.0 / (ProjConf::COLOR_RANGE_SIXTH * 6);
@@ -19,7 +21,8 @@ ChannelPane::ChannelPane():
     sliderChannelKnot(),
     bttnResetColor(new QPushButton(QStringLiteral("RESET"), nullptr)),
     pChannelCurves(new ChannelCurves()),
-    logNormFactor(1.0),
+    logFactor(0.0),
+    logNorm(1.0),
     splineY(),
     splineK()
 {
@@ -27,13 +30,15 @@ ChannelPane::ChannelPane():
 
     sliderLogNorm->setRange(0, ProjConf::LOG_NORM_SLIDER_RANGE);
     connect(sliderLogNorm, &QSlider::valueChanged, [this](int value) {
-        logNormFactor = qExp(ProjConf::LOG_NORM_SLIDER_SCALE * value / ProjConf::LOG_NORM_SLIDER_RANGE);
+        logFactor = qExp(ProjConf::LOG_NORM_SLIDER_SCALE * value / ProjConf::LOG_NORM_SLIDER_RANGE);
+        logNorm = 1.0 / qLn(1.0 + logFactor);
         emit signalUpdateGraphics();
     });
 
     for (size_t idx = 0; idx < 7; idx++) {
         for (size_t channel = 0; channel < 3; channel++) {
             auto slider = new QSlider(nullptr);
+            slider->setFixedWidth(2 * ProjConf::COLOR_SLIDER_HALF_WIDTH);
             slider->setProperty("channel", channel);
             slider->setRange(0, ProjConf::COLOR_RANGE_SIXTH * 6);
             connect(slider, &QSlider::valueChanged, [this, channel, idx](int value) {
@@ -66,11 +71,12 @@ ChannelPane::ChannelPane():
     resetColorSliders();
 }
 
-void ChannelPane::slotUploadUnif(QOpenGLShaderProgram* shader, int unifLogF, int unifSplineY, int unifSplineK)
+void ChannelPane::slotUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK)
 {
-    shader->setUniformValue(unifLogF, static_cast<float>(logNormFactor));
-    shader->setUniformValueArray(unifSplineY, splineY.data(), 7);
-    shader->setUniformValueArray(unifSplineK, splineK.data(), 7);
+    sh->setUniformValue(unifLogF, static_cast<float>(logFactor));
+    sh->setUniformValue(unifLogN, static_cast<float>(logNorm));
+    sh->setUniformValueArray(unifSpY, splineY.data(), 7);
+    sh->setUniformValueArray(unifSpK, splineK.data(), 7);
 }
 
 void ChannelPane::updateSplineK(size_t channel)
@@ -101,7 +107,8 @@ void ChannelPane::resetColorSliders()
     sliderLogNorm->blockSignals(true);
     sliderLogNorm->setValue(0);
     sliderLogNorm->blockSignals(false);
-    logNormFactor = 1.0;
+    logFactor = 1.0;
+    logNorm = 1.0 / qLn(2.0);
     for (size_t idx = 0; idx < 7; idx++) {
         for (size_t channel = 0; channel < 3; channel++) {
             auto slider = sliderChannelKnot[idx][channel];
@@ -120,22 +127,32 @@ void ChannelPane::resetColorSliders()
 
 void ChannelPane::setupLayout()
 {
-    auto tuners = new QWidget;
+    auto tuners = new QWidget(nullptr);
     auto grid = new QGridLayout(tuners);
-    grid->setContentsMargins(8, 16, 8, 0);
-
-    grid->addWidget(sliderLogNorm, 0, 0, 1, 7);
-
+    constexpr int M = 8;
+    grid->setContentsMargins(M, 8, M, 0);
+    grid->setColumnStretch(1, 1);
+    grid->setColumnStretch(3, 1);
+    grid->setColumnStretch(5, 1);
+    grid->setColumnStretch(7, 1);
+    grid->setColumnStretch(9, 1);
+    grid->setColumnStretch(11, 1);
+    grid->addWidget(sliderLogNorm, 0, 0, 1, 13);
     auto addSliderRow = [this, grid](int row, size_t channel) {
         for (int idx = 0; idx < 7; idx++) {
-            grid->addWidget(sliderChannelKnot[idx][channel], row, idx);
+            grid->addWidget(sliderChannelKnot[idx][channel], row, idx * 2, Qt::AlignCenter);
         }
     };
     addSliderRow(1, 0);
     addSliderRow(2, 1);
     addSliderRow(3, 2);
-    grid->addWidget(bttnResetColor, 4, 0, 1, 7);
+    grid->addWidget(bttnResetColor, 4, 0, 1, 13);
 
+    auto m = M + ProjConf::COLOR_SLIDER_HALF_WIDTH;
+    auto wrapper = new QWidget(nullptr);
+    auto vbox = new QVBoxLayout(wrapper);
+    vbox->setContentsMargins(m, 0, m, 0);
+    vbox->addWidget(pChannelCurves);
     addWidget(tuners);
-    addWidget(pChannelCurves);
+    addWidget(wrapper);
 }

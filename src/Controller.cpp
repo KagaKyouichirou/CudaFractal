@@ -1,6 +1,6 @@
 #include "Controller.h"
 
-#include <QDockWidget>
+#include <QSplitter>
 #include <QTabWidget>
 
 namespace ProjConf
@@ -10,26 +10,21 @@ extern QSize const DEFAULT_MAINWINDOW_SIZE;
 
 Controller::Controller():
     QObject(nullptr),
-    pMainWindow(std::make_unique<QMainWindow>(nullptr, Qt::Window)),
+    uMainWindow(std::make_unique<QMainWindow>(nullptr, Qt::Window)),
     pInputPane(new InputPane()),
     pChannelPane(new ChannelPane()),
     pTextureView(new TextureView()),
     uTaskManager(std::make_unique<TaskManager>())
 {
-
     auto tabs = new QTabWidget(nullptr);
     tabs->addTab(pInputPane, QStringLiteral("Calculation Input"));
     tabs->addTab(pChannelPane, QStringLiteral("Color Channels"));
 
-    auto pane = new QDockWidget(QStringLiteral("Controlling Pane"), nullptr);
-    pane->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    pane->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    pane->setFloating(false);
-    pane->setWidget(tabs);
+    auto content = new QSplitter(nullptr);
+    content->addWidget(tabs);
+    content->addWidget(pTextureView);
 
-    pMainWindow->setCentralWidget(pTextureView);
-    pMainWindow->addDockWidget(Qt::LeftDockWidgetArea, pane);
-    pMainWindow->setAnimated(false);
+    uMainWindow->setCentralWidget(content);
 
     // clang-format off
     connect(
@@ -58,6 +53,6 @@ Controller::Controller():
 
 void Controller::start()
 {
-    pMainWindow->show();
-    pMainWindow->resize(ProjConf::DEFAULT_MAINWINDOW_SIZE);
+    uMainWindow->show();
+    uMainWindow->resize(ProjConf::DEFAULT_MAINWINDOW_SIZE);
 }

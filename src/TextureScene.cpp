@@ -1,18 +1,8 @@
 #include "TextureScene.h"
 
-TextureScene::TextureScene(std::unique_ptr<QOpenGLTexture> rendered):
-    texture(std::move(rendered)), tX(0.0), tY(0.0), s(1.0)
-{}
+#include <QDebug>
 
-int TextureScene::width() const
-{
-    return texture->width();
-}
-
-int TextureScene::height() const
-{
-    return texture->height();
-}
+TextureScene::TextureScene(QOpenGLTexture::Target target): QOpenGLTexture(target), tX(0.0), tY(0.0), s(1.0) {}
 
 double TextureScene::translateX() const
 {
@@ -42,14 +32,4 @@ void TextureScene::setTranslateY(double tY)
 void TextureScene::setScale(double s)
 {
     this->s = s;
-}
-
-void TextureScene::bindTexture()
-{
-    texture->bind();
-}
-
-void TextureScene::releaseTexture()
-{
-    texture->release();
 }

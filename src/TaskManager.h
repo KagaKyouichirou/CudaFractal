@@ -7,7 +7,6 @@
 #include <cuda_runtime.h>
 
 #include <QObject>
-#include <QOpenGLTexture>
 #include <QThread>
 
 class TaskManager: public QObject
@@ -34,7 +33,7 @@ private:
     std::unique_ptr<Renderer> renderer;
 
     bool flagBusy;
-    std::unique_ptr<QOpenGLTexture> texture;
+    std::unique_ptr<TextureScene> scene;
     cudaGraphicsResource_t surfaceResource;
     TaskArgs queued;
 };
