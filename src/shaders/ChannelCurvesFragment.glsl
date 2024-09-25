@@ -9,12 +9,12 @@ uniform float strokePeak;
 uniform float strokeNorm;
 uniform float aspectRatio;
 
-in vec2 textureCoord;
+in vec2 coord;
 out vec4 color;
 
 void main()
 {
-    float t = 6.0 * textureCoord.x;
+    float t = 6.0 * coord.x;
     int i = t >= 6.0 ? 5 : int(t);
     t -= i;
     
@@ -30,7 +30,7 @@ void main()
 
     // interpolated values
     vec3 f = e * y0 + t * y1 + e * t * (e * a + t * b);
-    f = abs(f - textureCoord.y) * aspectRatio * strokeNorm;
+    f = abs(f - coord.y) * aspectRatio * strokeNorm;
     vec3 d2 = f * f;
     // 1st derivative
     vec3 q = s + (e - t) * (e * a + t * b) + e * t * (b - a);
@@ -41,18 +41,18 @@ void main()
     vec3 rgb = clamp((1.0 - 4 * d2) * strokePeak, 0.0, 1.0);
 
     // draw y = ln(1 + Wx) / (1 + W)
-    float xScaled = logFactor * textureCoord.x;
+    float xScaled = logFactor * coord.x;
     float logXScaledPlusOne = log(1.0 + xScaled);
     float key = aspectRatio * logNorm - 1.0 / logFactor;
     float diff;
     float slope;
-    if (textureCoord.x >= 0.0 * key) {
-        diff = abs(logXScaledPlusOne * logNorm - textureCoord.y) * aspectRatio;
+    if (coord.x >= 0.0 * key) {
+        diff = abs(logXScaledPlusOne * logNorm - coord.y) * aspectRatio;
         slope = logFactor * logNorm / (1.0 + xScaled) * aspectRatio;
     } else {
         // use x = (exp(y / aspectRatio * ln(1 + W)) - 1) / W instead
-        float core = exp(logXScaledPlusOne * textureCoord.y / aspectRatio);
-        diff = abs((core - 1.0) / logFactor - textureCoord.x);
+        float core = exp(logXScaledPlusOne * coord.y / aspectRatio);
+        diff = abs((core - 1.0) / logFactor - coord.x);
         slope = core / (aspectRatio * logFactor * logNorm);
     }
     diff *= strokeNorm;

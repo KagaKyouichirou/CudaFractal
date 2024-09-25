@@ -19,24 +19,17 @@ __global__ void mandelbrotKernel(cudaSurfaceObject_t surf, double oX, double oY,
     surf2Dwrite(static_cast<float>(k) / limit, surf, x * sizeof(float), y, cudaBoundaryModeTrap);
 }
 
-__global__ void chessboardKernel(cudaSurfaceObject_t surf)
-{
-    auto x = blockIdx.x * blockDim.x + threadIdx.x;
-    auto y = blockIdx.y * blockDim.y + threadIdx.y;
-    float flag = static_cast<float>(blockIdx.x + blockIdx.y) / 200;
-    surf2Dwrite(flag, surf, x * sizeof(float), y, cudaBoundaryModeTrap);
-}
-
 extern "C" {
     void launchMandelbrotKernel(
-        dim3 dGrid, dim3 dBlock, cudaSurfaceObject_t surf, double oX, double oY, double step, uint16_t limit
+        dim3 dGrid,
+        dim3 dBlock,
+        cudaSurfaceObject_t surf,
+        double oX,
+        double oY,
+        double step,
+        uint16_t limit
     )
     {
         mandelbrotKernel<<<dGrid, dBlock>>>(surf, oX, oY, step, limit);
-    }
-
-    void launchChessboardKernel(dim3 dGrid, dim3 dBlock, cudaSurfaceObject_t surf)
-    {
-        chessboardKernel<<<dGrid, dBlock>>>(surf);
     }
 }

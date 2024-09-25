@@ -1,12 +1,14 @@
 #pragma once
 
 #include "ChannelPane.h"
+#include "ExportingManagement.h"
 #include "InputPane.h"
-#include "TaskManager.h"
+#include "RenderingManagement.h"
 #include "TextureView.h"
 
 #include <QMainWindow>
 #include <QObject>
+#include <QOpenGLContext>
 
 class Controller: public QObject
 {
@@ -14,9 +16,13 @@ class Controller: public QObject
 
 public:
     explicit Controller();
-    virtual ~Controller() = default;
+    virtual ~Controller() override final = default;
 
     void start();
+
+private:
+    void slotGLContextInitialized(QOpenGLContext* context);
+    void slotExportImage();
 
 private:
     std::unique_ptr<QMainWindow> uMainWindow;
@@ -24,5 +30,6 @@ private:
     InputPane* pInputPane;
     ChannelPane* pChannelPane;
     TextureView* pTextureView;
-    std::unique_ptr<TaskManager> uTaskManager;
+    std::unique_ptr<RenderingManager> uRenderingManager;
+    std::unique_ptr<ExportingManager> uExportingManager;
 };

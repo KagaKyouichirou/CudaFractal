@@ -1,10 +1,12 @@
 #pragma once
 
+#include "ChannelArgs.h"
+#include "ChannelCurves.h"
+
 #include <QOpenGLShaderProgram>
 #include <QPushButton>
 #include <QSlider>
 #include <QSplitter>
-#include "ChannelCurves.h"
 
 class ChannelPane: public QSplitter
 {
@@ -13,6 +15,8 @@ class ChannelPane: public QSplitter
 public:
     explicit ChannelPane();
     virtual ~ChannelPane() override final = default;
+
+    ChannelArgs* channelArgs() const;
 
 public:
     void slotUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);
@@ -26,14 +30,10 @@ private:
     void setupLayout();
 
 private:
-    QSlider* sliderLogNorm;
+    QSlider* sliderLogCurve;
     std::array<std::array<QSlider*, 3>, 7> sliderChannelKnot;
     QPushButton* bttnResetColor;
     ChannelCurves* pChannelCurves;
 
-    double logFactor;
-    double logNorm;
-
-    std::array<QVector3D, 7> splineY;
-    std::array<QVector3D, 7> splineK;
+    ChannelArgs args;
 };

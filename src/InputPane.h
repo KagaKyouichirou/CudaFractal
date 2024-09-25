@@ -12,10 +12,11 @@ class InputPane: public QWidget
 
 public:
     explicit InputPane();
-    virtual ~InputPane() = default;
+    virtual ~InputPane() override final = default;
 
 signals:
     void signalAddTask(TaskArgs task);
+    void signalExportImage();
     void signalStatusTemp(QString hint);
 
     void signalSetSplineY(size_t channel, size_t idx, double y);
@@ -33,4 +34,5 @@ private:
     QLineEdit* inputHalfUnit;
     QLineEdit* inputIterLimit;
     QPushButton* bttnRender;
+    QPushButton* bttnExport;
 };

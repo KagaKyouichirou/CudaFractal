@@ -7,32 +7,37 @@
 #include <cuda_gl_interop.h>
 #include <QDebug>
 
-namespace ProjConf
+namespace AppConf
 {
 extern QString const TEXTURE_VIEW_STYLE;
 extern char const* SHADER_TEXTURE_VIEW_VERTEX;
 extern char const* SHADER_TEXTURE_VIEW_FRAGMENT;
-}  // namespace ProjConf
+}  // namespace AppConf
 
 TextureView::TextureView():
     QOpenGLWidget(nullptr),
-    scene(),
+    sScene(),
     viewportW(0),
     viewportH(0),
     flagDragging(false),
     lastMousePos(0.0, 0.0),
-    shaderProgram(nullptr),
+    uShader(),
     vertexBuffer(QOpenGLBuffer::VertexBuffer)
 {
-    setStyleSheet(ProjConf::TEXTURE_VIEW_STYLE);
+    setStyleSheet(AppConf::TEXTURE_VIEW_STYLE);
+}
+
+std::shared_ptr<TextureScene> TextureView::scene() const
+{
+    return sScene;
 }
 
 void TextureView::slotSceneRendered(TextureScene* ts)
 {
     qDebug() << "Scene Rendered" << ts->width() << ts->height();
-    scene.reset(ts);
-    auto w = static_cast<GLfloat>(scene->width());
-    auto h = static_cast<GLfloat>(scene->height());
+    sScene.reset(ts);
+    auto w = static_cast<GLfloat>(sScene->width());
+    auto h = static_cast<GLfloat>(sScene->height());
     constexpr auto size = sizeof(GLfloat);
     // update the model vertices
     vertexBuffer.bind();
@@ -46,27 +51,27 @@ void TextureView::slotSceneRendered(TextureScene* ts)
 
 void TextureView::slotZoomToFit()
 {
-    if (!scene) {
+    if (!sScene) {
         return;
     }
-    double factorW = static_cast<double>(viewportW) / scene->width();
-    double factorH = static_cast<double>(viewportH) / scene->height();
-    scene->setScale(std::min(factorW, factorH));
+    double factorW = static_cast<double>(viewportW) / sScene->width();
+    double factorH = static_cast<double>(viewportH) / sScene->height();
+    sScene->setScale(std::min(factorW, factorH));
     centerView();
 }
 
 void TextureView::slotZoomToActualSize()
 {
-    if (!scene) {
+    if (!sScene) {
         return;
     }
-    scene->setScale(1.0);
+    sScene->setScale(1.0);
     centerView();
 }
 
 void TextureView::mousePressEvent(QMouseEvent* event)
 {
-    if (!scene) {
+    if (!sScene) {
         return;
     }
     switch (event->button()) {
@@ -87,15 +92,15 @@ void TextureView::mousePressEvent(QMouseEvent* event)
 
 void TextureView::mouseMoveEvent(QMouseEvent* event)
 {
-    if (!scene) {
+    if (!sScene) {
         return;
     }
     if (!flagDragging) {
         return;
     }
     auto r = devicePixelRatio();
-    scene->setTranslateX(scene->translateX() + r * event->x() - lastMousePos.x());
-    scene->setTranslateY(scene->translateY() - r * event->y() + lastMousePos.y());
+    sScene->setTranslateX(sScene->translateX() + r * event->x() - lastMousePos.x());
+    sScene->setTranslateY(sScene->translateY() - r * event->y() + lastMousePos.y());
     lastMousePos = r * event->position();
     update();
 }
@@ -107,22 +112,23 @@ void TextureView::mouseReleaseEvent(QMouseEvent* event)
 
 void TextureView::wheelEvent(QWheelEvent* event)
 {
-    if (!scene) {
+    if (!sScene) {
         return;
     }
     constexpr double factorIn = 1.125;
     constexpr double factorOut = 1.0 / factorIn;
     auto const& p = event->position();
     QPointF coord = QPointF(p.x(), height() - p.y()) * devicePixelRatio();
-    coord.rx() -= scene->translateX();
-    coord.ry() -= scene->translateY();
-    auto scaleNew = scene->scale() * (event->angleDelta().y() > 0 ? factorIn : factorOut);
+    coord.rx() -= sScene->translateX();
+    coord.ry() -= sScene->translateY();
+    auto scaleNew = sScene->scale() * (event->angleDelta().y() > 0 ? factorIn : factorOut);
     scaleAt(scaleNew, coord);
     update();
 }
 
 void TextureView::initializeGL()
 {
+    emit signalGLContextInitialized(context());
     initializeOpenGLFunctions();
     glEnable(GL_TEXTURE_2D);
 
@@ -140,87 +146,84 @@ void TextureView::initializeGL()
     vertexBuffer.allocate(vertices.constData(), vertices.count() * sizeof(GLfloat));
     vertexBuffer.release();
 
-    shaderProgram = new QOpenGLShaderProgram(this);
-    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, ProjConf::SHADER_TEXTURE_VIEW_VERTEX)) {
+    uShader = std::make_unique<QOpenGLShaderProgram>(nullptr);
+    if (!uShader->addShaderFromSourceCode(QOpenGLShader::Vertex, AppConf::SHADER_TEXTURE_VIEW_VERTEX)) {
         qDebug() << "Vertex Shader Failed";
         return;
     }
-    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, ProjConf::SHADER_TEXTURE_VIEW_FRAGMENT)) {
+    if (!uShader->addShaderFromSourceCode(QOpenGLShader::Fragment, AppConf::SHADER_TEXTURE_VIEW_FRAGMENT)) {
         qDebug() << "Fragment Shader Failed";
         return;
     }
-    if (!shaderProgram->link()) {
+    if (!uShader->link()) {
         qDebug() << "Shader Program Failed To Link";
         return;
     }
-    attrVertexCoord = shaderProgram->attributeLocation("vertexCoord");
-    attrTextureCoord = shaderProgram->attributeLocation("textureCoord");
-    unifMatrixProj = shaderProgram->uniformLocation("matrixProj");
-    unifPoints = shaderProgram->uniformLocation("points");
-    unifLogF = shaderProgram->uniformLocation("logFactor");
-    unifLogN = shaderProgram->uniformLocation("logNorm");
-    unifSpY = shaderProgram->uniformLocation("splineY");
-    unifSpK = shaderProgram->uniformLocation("splineK");
+    attrVertexCoord = uShader->attributeLocation("vertexCoord");
+    attrTextureCoord = uShader->attributeLocation("textureCoord");
+    unifMatrixProj = uShader->uniformLocation("matrixProj");
+    unifPoints = uShader->uniformLocation("points");
+    unifLogF = uShader->uniformLocation("logFactor");
+    unifLogN = uShader->uniformLocation("logNorm");
+    unifSpY = uShader->uniformLocation("splineY");
+    unifSpK = uShader->uniformLocation("splineK");
 }
 
 void TextureView::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, viewportW, viewportH);
-    if (!scene) {
+    if (!sScene) {
         return;
     }
 
     // clamp translate args
     // X
-    auto tX = scene->translateX();
-    double scaledW = scene->scale() * scene->width();
+    auto tX = sScene->translateX();
+    double scaledW = sScene->scale() * sScene->width();
     if (scaledW > viewportW) {
         tX = std::clamp(tX, viewportW - scaledW, 0.0);
     } else {
         tX = std::clamp(tX, 0.0, viewportW - scaledW);
     }
-    scene->setTranslateX(tX);
+    sScene->setTranslateX(tX);
     // Y
-    auto tY = scene->translateY();
-    double scaledH = scene->scale() * scene->height();
+    auto tY = sScene->translateY();
+    double scaledH = sScene->scale() * sScene->height();
     if (scaledH > viewportH) {
         tY = std::clamp(tY, viewportH - scaledH, 0.0);
     } else {
         tY = std::clamp(tY, 0.0, viewportH - scaledH);
     }
-    scene->setTranslateY(tY);
+    sScene->setTranslateY(tY);
 
     QMatrix4x4 matrixProj;
     matrixProj.ortho(0.0, viewportW, 0.0, viewportH, -1.0, 1.0);
     matrixProj.translate(static_cast<int>(tX), static_cast<int>(tY));
-    matrixProj.scale(scene->scale());
+    matrixProj.scale(sScene->scale());
 
-    scene->bind();
+    sScene->bind(0u);
 
-    if (!shaderProgram->bind()) {
-        qDebug() << "Shader Program Failed To Bind";
-        return;
-    }
-    shaderProgram->enableAttributeArray(attrVertexCoord);
-    shaderProgram->enableAttributeArray(attrTextureCoord);
+    uShader->bind();
+    uShader->enableAttributeArray(attrVertexCoord);
+    uShader->enableAttributeArray(attrTextureCoord);
 
     vertexBuffer.bind();
-    shaderProgram->setAttributeBuffer(attrVertexCoord, GL_FLOAT, 0, 2, 4 * sizeof(GLfloat));
-    shaderProgram->setAttributeBuffer(attrTextureCoord, GL_FLOAT, 2 * sizeof(GLfloat), 2, 4 * sizeof(GLfloat));
+    uShader->setAttributeBuffer(attrVertexCoord, GL_FLOAT, 0, 2, 4 * sizeof(GLfloat));
+    uShader->setAttributeBuffer(attrTextureCoord, GL_FLOAT, 2 * sizeof(GLfloat), 2, 4 * sizeof(GLfloat));
     vertexBuffer.release();
-    shaderProgram->setUniformValue(unifMatrixProj, matrixProj);
+    uShader->setUniformValue(unifMatrixProj, matrixProj);
 
-    shaderProgram->setUniformValue(unifPoints, 0);
-    emit signalUploadUnif(shaderProgram, unifLogF, unifLogN, unifSpY, unifSpK);
+    uShader->setUniformValue(unifPoints, 0);
+    emit signalUploadUnif(uShader.get(), unifLogF, unifLogN, unifSpY, unifSpK);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    shaderProgram->disableAttributeArray(attrVertexCoord);
-    shaderProgram->disableAttributeArray(attrTextureCoord);
-    shaderProgram->release();
+    uShader->disableAttributeArray(attrVertexCoord);
+    uShader->disableAttributeArray(attrTextureCoord);
+    uShader->release();
 
-    scene->release();
+    sScene->release();
 }
 
 void TextureView::resizeGL(int w, int h)
@@ -228,10 +231,10 @@ void TextureView::resizeGL(int w, int h)
     auto r = devicePixelRatio();
     w = static_cast<int>(w * r);
     h = static_cast<int>(h * r);
-    if (scene) {
+    if (sScene) {
         // pin the center
-        scene->setTranslateX(scene->translateX() + (w - viewportW) / 2);
-        scene->setTranslateY(scene->translateY() + (h - viewportH) / 2);
+        sScene->setTranslateX(sScene->translateX() + (w - viewportW) / 2);
+        sScene->setTranslateY(sScene->translateY() + (h - viewportH) / 2);
     }
     viewportW = w;
     viewportH = h;
@@ -244,15 +247,15 @@ void TextureView::scaleAt(double scaleNew, QPointF coord)
     } else if (scaleNew < 0.25) {
         scaleNew = 0.25;
     }
-    coord *= (1.0f - scaleNew / scene->scale());
-    scene->setScale(scaleNew);
-    scene->setTranslateX(scene->translateX() + coord.x());
-    scene->setTranslateY(scene->translateY() + coord.y());
+    coord *= (1.0f - scaleNew / sScene->scale());
+    sScene->setScale(scaleNew);
+    sScene->setTranslateX(sScene->translateX() + coord.x());
+    sScene->setTranslateY(sScene->translateY() + coord.y());
 }
 
 void TextureView::centerView()
 {
-    scene->setTranslateX((viewportW - scene->scale() * scene->width()) / 2);
-    scene->setTranslateY((viewportH - scene->scale() * scene->height()) / 2);
+    sScene->setTranslateX((viewportW - sScene->scale() * sScene->width()) / 2);
+    sScene->setTranslateY((viewportH - sScene->scale() * sScene->height()) / 2);
     update();
 }

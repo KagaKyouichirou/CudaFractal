@@ -5,7 +5,7 @@
 #include <QSize>
 #include <QString>
 
-namespace ProjConf
+namespace AppConf
 {
 
 extern constexpr QSize DEFAULT_MAINWINDOW_SIZE{1024, 768};
@@ -41,14 +41,39 @@ extern QString const CHANNEL_PANE_STYLE{QStringLiteral(R"(
     QSlider::handle:horizontal {
         background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #E0E0E0, stop:1 #8F8F8F);
     }
+
+    QSlider::groove:vertical {
+        border: none;
+        width: 8px;
+        margin 1px 0px;
+    }
+
+    QSlider::handle:vertical {
+        height: 10px;
+        margin: 0 -6px;
+    }
+
+    QSlider::sub-page:vertical {
+        background: #E0E0E0;
+    }
+
     QSlider[channel="0"]::handle {
-        background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FF0000, stop:1 #F0F0F0);
+        background: qlineargradient(x1:0.5, y1:0, x2:0.5, y2:1, stop:0 #FF0000, stop:1 #FFD0D0);
+    }
+    QSlider[channel="0"]::add-page {
+        background: #FFD0D0;
     }
     QSlider[channel="1"]::handle {
-        background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #00FF00, stop:1 #F0F0F0);
+        background: qlineargradient(x1:0.5, y1:0, x2:0.5, y2:1, stop:0 #00FF00, stop:1 #D0FFD0);
+    }
+    QSlider[channel="1"]::add-page {
+        background: #D0FFD0;
     }
     QSlider[channel="2"]::handle {
-        background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #0000FF, stop:1 #F0F0F0);
+        background: qlineargradient(x1:0.5, y1:0, x2:0.5, y2:1, stop:0 #0000FF, stop:1 #D0D0FF);
+    }
+    QSlider[channel="2"]::add-page {
+        background: #D0D0FF;
     }
 
     QPushButton {
@@ -88,4 +113,7 @@ extern char const* SHADER_CHANNEL_CURVES_FRAGMENT =
 #include "shaders/ChannelCurvesFragment.str"
     ;
 
-}  // namespace ProjConf
+extern char const* SHADER_TEXTURE_EXPORT_VERTEX = SHADER_CHANNEL_CURVES_VERTEX;
+extern char const* SHADER_TEXTURE_EXPORT_FRAGMENT = SHADER_TEXTURE_VIEW_FRAGMENT;
+
+}  // namespace AppConf

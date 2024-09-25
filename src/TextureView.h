@@ -17,6 +17,9 @@ class TextureView: public QOpenGLWidget, protected QOpenGLFunctions
 
 public:
     explicit TextureView();
+    virtual ~TextureView() override final = default;
+
+    std::shared_ptr<TextureScene> scene() const;
 
 public:
     void slotSceneRendered(TextureScene* ts);
@@ -24,6 +27,7 @@ public:
     void slotZoomToActualSize();
 
 signals:
+    void signalGLContextInitialized(QOpenGLContext* ctx);
     void signalUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);
 
 protected:
@@ -42,13 +46,13 @@ private:
     void centerView();
 
 private:
-    std::unique_ptr<TextureScene> scene;
+    std::shared_ptr<TextureScene> sScene;
     int viewportW;
     int viewportH;
     bool flagDragging;
     QPointF lastMousePos;
     
-    QOpenGLShaderProgram* shaderProgram;
+    std::unique_ptr<QOpenGLShaderProgram> uShader;
     QOpenGLBuffer vertexBuffer;
     int attrVertexCoord;
     int attrTextureCoord;

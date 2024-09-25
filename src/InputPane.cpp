@@ -3,10 +3,11 @@
 #include <vector_types.h>
 #include <QDoubleValidator>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QIntValidator>
 #include <QLabel>
 
-namespace ProjConf
+namespace AppConf
 {
 extern QString const INPUT_PANE_STYLE;
 extern QList<std::pair<dim3, dim3>> DIMENSION_OPTIONS;
@@ -14,7 +15,7 @@ extern QString const DEFAULT_CENTER_X;
 extern QString const DEFAULT_CENTER_Y;
 extern QString const DEFAULT_HALF_UNIT;
 extern QString const DEFAULT_ITER_LIMIT;
-}  // namespace ProjConf
+}  // namespace AppConf
 
 InputPane::InputPane():
     QWidget(nullptr),
@@ -23,13 +24,14 @@ InputPane::InputPane():
     inputCenterY(new QLineEdit(nullptr)),
     inputHalfUnit(new QLineEdit(nullptr)),
     inputIterLimit(new QLineEdit(nullptr)),
-    bttnRender(new QPushButton(QStringLiteral("RENDER"), nullptr))
+    bttnRender(new QPushButton(QStringLiteral("RENDER"), nullptr)),
+    bttnExport(new QPushButton(QStringLiteral("EXPORT"), nullptr))
 {
-    setStyleSheet(ProjConf::INPUT_PANE_STYLE);
+    setStyleSheet(AppConf::INPUT_PANE_STYLE);
 
     setupLayout();
 
-    for (auto p : ProjConf::DIMENSION_OPTIONS) {
+    for (auto p : AppConf::DIMENSION_OPTIONS) {
         auto w = p.first.x * p.second.x;
         auto h = p.first.y * p.second.y;
         inputDimOption->addItem(QString::asprintf("%d × %d", w, h));
@@ -43,13 +45,14 @@ InputPane::InputPane():
     inputIterLimit->setValidator(new QIntValidator(1, 2147483647, this));
 
     connect(bttnRender, &QPushButton::clicked, this, &InputPane::render, Qt::DirectConnection);
+    connect(bttnExport, &QPushButton::clicked, this, &InputPane::signalExportImage, Qt::DirectConnection);
 
     // fill in initial input values
     inputDimOption->setCurrentIndex(0);
-    inputCenterX->setText(ProjConf::DEFAULT_CENTER_X);
-    inputCenterY->setText(ProjConf::DEFAULT_CENTER_Y);
-    inputHalfUnit->setText(ProjConf::DEFAULT_HALF_UNIT);
-    inputIterLimit->setText(ProjConf::DEFAULT_ITER_LIMIT);
+    inputCenterX->setText(AppConf::DEFAULT_CENTER_X);
+    inputCenterY->setText(AppConf::DEFAULT_CENTER_Y);
+    inputHalfUnit->setText(AppConf::DEFAULT_HALF_UNIT);
+    inputIterLimit->setText(AppConf::DEFAULT_ITER_LIMIT);
 }
 
 void InputPane::render()
@@ -74,7 +77,7 @@ void InputPane::render()
     if (!(ok && l >= 16 && l <= 65535)) {
         emit signalStatusTemp(QStringLiteral("Iter-Limit should be at least 16 and not exceeding 65535"));
     }
-    auto [dGrid, dBlock] = ProjConf::DIMENSION_OPTIONS[inputDimOption->currentIndex()];
+    auto [dGrid, dBlock] = AppConf::DIMENSION_OPTIONS[inputDimOption->currentIndex()];
     emit signalAddTask(TaskArgs{dGrid, dBlock, x, y, h, static_cast<uint16_t>(l)});
 }
 
@@ -98,7 +101,11 @@ void InputPane::setupLayout()
     grid->addWidget(new QLabel(QStringLiteral("Iter Limit")), 4, 0);
     grid->addWidget(inputIterLimit, 4, 1);
 
-    grid->addWidget(bttnRender, 5, 0, 1, 2);
+    auto buttons = new QWidget(nullptr);
+    auto hbox = new QHBoxLayout(buttons);
+    hbox->addWidget(bttnRender);
+    hbox->addWidget(bttnExport);
+    grid->addWidget(buttons, 5, 0, 1, 2);
 
     grid->setRowStretch(6, 1);
 }

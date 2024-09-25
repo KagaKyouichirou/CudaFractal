@@ -3,14 +3,14 @@
 #include <QDebug>
 #include <QtMath>
 
-namespace ProjConf
+namespace AppConf
 {
 extern QString const CHANNEL_CURVES_STYLE;
 extern float const CHANNEL_CURVES_STROKE_PEAK;
 extern float const CHANNEL_CURVES_STROKE_NORM;
 extern char const* SHADER_CHANNEL_CURVES_VERTEX;
 extern char const* SHADER_CHANNEL_CURVES_FRAGMENT;
-}  // namespace ProjConf
+}  // namespace AppConf
 
 ChannelCurves::ChannelCurves():
     QOpenGLWidget(nullptr),
@@ -19,7 +19,7 @@ ChannelCurves::ChannelCurves():
     shaderProgram(nullptr),
     vertexBuffer(QOpenGLBuffer::VertexBuffer)
 {
-    setStyleSheet(ProjConf::CHANNEL_CURVES_STYLE);
+    setStyleSheet(AppConf::CHANNEL_CURVES_STYLE);
 }
 
 void ChannelCurves::initializeGL()
@@ -32,11 +32,11 @@ void ChannelCurves::initializeGL()
     vertexBuffer.allocate(vertices.constData(), vertices.count() * sizeof(GLfloat));
     vertexBuffer.release();
     shaderProgram = new QOpenGLShaderProgram(this);
-    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, ProjConf::SHADER_CHANNEL_CURVES_VERTEX)) {
+    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, AppConf::SHADER_CHANNEL_CURVES_VERTEX)) {
         qDebug() << "Vertex Shader Failed";
         return;
     }
-    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, ProjConf::SHADER_CHANNEL_CURVES_FRAGMENT)) {
+    if (!shaderProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, AppConf::SHADER_CHANNEL_CURVES_FRAGMENT)) {
         qDebug() << "Fragment Shader Failed";
         return;
     }
@@ -68,9 +68,9 @@ void ChannelCurves::paintGL()
     vertexBuffer.release();
 
     emit signalUploadUnif(shaderProgram, unifLogF, unifLogN, unifSpY, unifSpK);
-    shaderProgram->setUniformValue(unifStrokePeak, ProjConf::CHANNEL_CURVES_STROKE_PEAK);
+    shaderProgram->setUniformValue(unifStrokePeak, AppConf::CHANNEL_CURVES_STROKE_PEAK);
     // stroke-width is fixed in pixels, not relative to viewport size
-    auto norm = ProjConf::CHANNEL_CURVES_STROKE_NORM * viewportW;
+    auto norm = AppConf::CHANNEL_CURVES_STROKE_NORM * viewportW;
     shaderProgram->setUniformValue(unifStrokeNorm, norm);
     auto aspectRatio = static_cast<float>(viewportH) / viewportW;
     shaderProgram->setUniformValue(unifAspectRatio, aspectRatio);
