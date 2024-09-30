@@ -16,10 +16,20 @@ set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 
 file(GLOB SOURCES
     "${SRC_DIR}/*.cpp"
-    "${SRC_DIR}/*.cu"
+    "${SRC_DIR}/cuda/*.cu"
 )
 
 qt_add_executable(CudaFractal ${SOURCES})
+
+qt_add_resources(CudaFractal "icons"
+    PREFIX
+        "/icons"
+    BASE
+        "${SRC_DIR}/icons"
+    FILES
+        "${SRC_DIR}/icons/positive.svg"
+        "${SRC_DIR}/icons/negative.svg"
+)
 
 add_custom_target(WrapGlslAsLiteral
     COMMAND ${CMAKE_COMMAND} -D SRC_DIR=${SRC_DIR} -P ${CMAKE_SOURCE_DIR}/wrap_glsl_as_literal.cmake

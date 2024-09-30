@@ -12,15 +12,20 @@ extern char const* SHADER_TEXTURE_EXPORT_FRAGMENT;
 ExportingManager::ExportingManager():
     QObject(nullptr),
     uThread(std::make_unique<QThread>()),
-    uExporter(std::make_unique<ImageExporter>()),
+    pExporter(new ImageExporter()),
     uSurface(std::make_unique<QOffscreenSurface>()),
     flagBusy(true)
 {
-    uExporter->moveToThread(uThread.get());
+    pExporter->moveToThread(uThread.get());
     // clang-format off
     connect(
+        uThread.get(), &QThread::finished,
+        pExporter, &ImageExporter::deleteLater,
+        Qt::DirectConnection
+    );
+    connect(
         this, &ExportingManager::signalContextInit,
-        uExporter.get(), &ImageExporter::slotContextInit,
+        pExporter, &ImageExporter::slotContextInit,
         Qt::QueuedConnection
     );
     // clang-format on
@@ -47,11 +52,11 @@ void ExportingManager::initialize(QOpenGLContext* context)
     // clang-format off
     connect(
         this, &ExportingManager::signalStartExporting,
-        uExporter.get(), &ImageExporter::slotStartExporting,
+        pExporter, &ImageExporter::slotStartExporting,
         Qt::QueuedConnection
     );
     connect(
-        uExporter.get(), &ImageExporter::signalDoneExporting,
+        pExporter, &ImageExporter::signalDoneExporting,
         this, &ExportingManager::slotDoneExporting,
         Qt::QueuedConnection
     );

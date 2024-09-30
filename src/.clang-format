@@ -57,9 +57,10 @@ NamespaceIndentation: None
 ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: true
 PackConstructorInitializers: CurrentLine
+PenaltyBreakBeforeFirstCallParameter: 0
 PenaltyBreakOpenParenthesis: 0
-PenaltyExcessCharacter: 1000000
-PenaltyReturnTypeOnItsOwnLine: 2000
+PenaltyExcessCharacter: 10000
+PenaltyReturnTypeOnItsOwnLine: 200000
 PointerAlignment: Left
 QualifierAlignment: Right
 ReflowComments: false

@@ -2,8 +2,7 @@
 
 #include "TextureScene.h"
 
-#include <cuda_runtime.h>
-#include <QImage>
+#include <QFocusEvent>
 #include <QMouseEvent>
 #include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
@@ -17,7 +16,7 @@ class TextureView: public QOpenGLWidget, protected QOpenGLFunctions
 
 public:
     explicit TextureView();
-    virtual ~TextureView() override final = default;
+    ~TextureView() override final = default;
 
     std::shared_ptr<TextureScene> scene() const;
 
@@ -31,6 +30,7 @@ signals:
     void signalUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);
 
 protected:
+    void focusOutEvent(QFocusEvent* event) override final;
     void mousePressEvent(QMouseEvent* event) override final;
     void mouseMoveEvent(QMouseEvent* event) override final;
     void mouseReleaseEvent(QMouseEvent* event) override final;
@@ -51,7 +51,7 @@ private:
     int viewportH;
     bool flagDragging;
     QPointF lastMousePos;
-    
+
     std::unique_ptr<QOpenGLShaderProgram> uShader;
     QOpenGLBuffer vertexBuffer;
     int attrVertexCoord;

@@ -7,9 +7,9 @@ extern "C" {
         dim3 dGrid,
         dim3 dBlock,
         cudaSurfaceObject_t surf,
-        double oX,
-        double oY,
-        double step,
-        uint16_t limit
+        void* oX,
+        void* oY,
+        void* step,
+        int limit
     );
 }

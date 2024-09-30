@@ -1,30 +1,35 @@
 #include "RenderingManagement.h"
 
-#include "cuda_kernels.h"
+#include "cuda/Interface.h"
 
 #include <windows.h>
 
 #include <cuda_gl_interop.h>
-#include <QDebug>
+#include <QElapsedTimer>
 
 RenderingManager::RenderingManager():
     QObject(nullptr),
     uThread(std::make_unique<QThread>()),
-    uRenderer(std::make_unique<Renderer>()),
+    pRenderer(new Renderer()),
     flagBusy(false),
     uScene(),
     surfaceResource(nullptr),
     queued()
 {
-    uRenderer->moveToThread(uThread.get());
+    pRenderer->moveToThread(uThread.get());
     // clang-format off
     connect(
+        uThread.get(), &QThread::finished,
+        pRenderer, &Renderer::deleteLater,
+        Qt::DirectConnection
+    );
+    connect(
         this, &RenderingManager::signalTask,
-        uRenderer.get(), &Renderer::slotTask,
+        pRenderer, &Renderer::slotTask,
         Qt::QueuedConnection
     );
     connect(
-        uRenderer.get(), &Renderer::signalTaskFinished,
+        pRenderer, &Renderer::signalTaskFinished,
         this, &RenderingManager::slotTaskFinished,
         Qt::QueuedConnection
     );
@@ -41,27 +46,25 @@ RenderingManager::~RenderingManager()
 void RenderingManager::slotAddTask(TaskArgs task)
 {
     queued = task;
-    qDebug() << "task queued";
+    emit signalStatusTemp(QStringLiteral("Rendering Task Added"));
     if (!flagBusy) {
-        qDebug() << "idle; issue task right now";
         runTask();
     }
 }
 
-void RenderingManager::slotTaskFinished()
+void RenderingManager::slotTaskFinished(double seconds)
 {
-    qDebug() << "task finished";
     cudaGraphicsUnmapResources(1, &surfaceResource);
     cudaGraphicsUnregisterResource(surfaceResource);
     surfaceResource = nullptr;
 
+    auto message = QString::asprintf("Rendering Finished: %d × %d %.3fs", uScene->width(), uScene->height(), seconds);
+    emit signalStatusTemp(message);
     emit signalSceneRendered(uScene.release());
 
     if (queued.limit > 0) {
-        qDebug() << "queued task found";
         runTask();
     } else {
-        qDebug() << "idle";
         flagBusy = false;
     }
 }
@@ -81,10 +84,11 @@ void RenderingManager::runTask()
     uScene->setMagnificationFilter(QOpenGLTexture::Linear);
     uScene->setWrapMode(QOpenGLTexture::WrapMode::ClampToEdge);
 
-    qDebug() << "Texture Allocated";
-
     cudaGraphicsGLRegisterImage(
-        &surfaceResource, uScene->textureId(), GL_TEXTURE_2D, cudaGraphicsRegisterFlagsSurfaceLoadStore
+        &surfaceResource,
+        uScene->textureId(),
+        GL_TEXTURE_2D,
+        cudaGraphicsRegisterFlagsSurfaceLoadStore
     );
     cudaGraphicsMapResources(1, &surfaceResource);
 
@@ -97,7 +101,8 @@ Renderer::Renderer(): QObject(nullptr) {}
 
 void Renderer::slotTask(TaskArgs task, cudaGraphicsResource* resource)
 {
-    qDebug() << "Rendering...";
+    QElapsedTimer timer;
+    timer.start();
 
     cudaArray_t array;
     cudaGraphicsSubResourceGetMappedArray(&array, resource, 0, 0);
@@ -108,13 +113,21 @@ void Renderer::slotTask(TaskArgs task, cudaGraphicsResource* resource)
     cudaSurfaceObject_t surf;
     cudaCreateSurfaceObject(&surf, &surfRes);
 
-    double oX = task.x - (task.dGrid.x * task.dBlock.x - 1) * task.h;
-    double oY = task.y - (task.dGrid.y * task.dBlock.y - 1) * task.h;
-    launchMandelbrotKernel(task.dGrid, task.dBlock, surf, oX, oY, task.h * 2, task.limit);
+    auto oX = task.h;
+    oX.mul(task.dGrid.x * task.dBlock.x - 1);
+    oX.flip();
+    oX.add(task.x);
+    auto oY = task.h;
+    oY.mul(task.dGrid.y * task.dBlock.y - 1);
+    oY.flip();
+    oY.add(task.y);
+    auto step = task.h;
+    step.dou();
+    launchMandelbrotKernel(task.dGrid, task.dBlock, surf, &oX, &oY, &step, task.limit);
     cudaDeviceSynchronize();
     cudaDestroySurfaceObject(surf);
 
-    qDebug() << "Rendering Done";
+    auto seconds = static_cast<double>(timer.elapsed()) / 1000;
 
-    emit signalTaskFinished();
+    emit signalTaskFinished(seconds);
 }

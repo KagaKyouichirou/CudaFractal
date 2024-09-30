@@ -1,10 +1,5 @@
 #include "TextureView.h"
 
-#include "cuda_kernels.h"
-
-#include <windows.h>
-
-#include <cuda_gl_interop.h>
 #include <QDebug>
 
 namespace AppConf
@@ -25,6 +20,8 @@ TextureView::TextureView():
     vertexBuffer(QOpenGLBuffer::VertexBuffer)
 {
     setStyleSheet(AppConf::TEXTURE_VIEW_STYLE);
+    setMouseTracking(true);
+    setFocusPolicy(Qt::FocusPolicy::ClickFocus);
 }
 
 std::shared_ptr<TextureScene> TextureView::scene() const
@@ -34,7 +31,6 @@ std::shared_ptr<TextureScene> TextureView::scene() const
 
 void TextureView::slotSceneRendered(TextureScene* ts)
 {
-    qDebug() << "Scene Rendered" << ts->width() << ts->height();
     sScene.reset(ts);
     auto w = static_cast<GLfloat>(sScene->width());
     auto h = static_cast<GLfloat>(sScene->height());
@@ -67,6 +63,12 @@ void TextureView::slotZoomToActualSize()
     }
     sScene->setScale(1.0);
     centerView();
+}
+
+void TextureView::focusOutEvent(QFocusEvent* event)
+{
+    flagDragging = false;
+    QOpenGLWidget::focusOutEvent(event);
 }
 
 void TextureView::mousePressEvent(QMouseEvent* event)
@@ -233,8 +235,8 @@ void TextureView::resizeGL(int w, int h)
     h = static_cast<int>(h * r);
     if (sScene) {
         // pin the center
-        sScene->setTranslateX(sScene->translateX() + (w - viewportW) / 2);
-        sScene->setTranslateY(sScene->translateY() + (h - viewportH) / 2);
+        sScene->setTranslateX(sScene->translateX() + (w - viewportW) / 2.0);
+        sScene->setTranslateY(sScene->translateY() + (h - viewportH) / 2.0);
     }
     viewportW = w;
     viewportH = h;

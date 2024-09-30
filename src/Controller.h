@@ -9,6 +9,8 @@
 #include <QMainWindow>
 #include <QObject>
 #include <QOpenGLContext>
+#include <QStatusBar>
+#include <memory>
 
 class Controller: public QObject
 {
@@ -16,7 +18,7 @@ class Controller: public QObject
 
 public:
     explicit Controller();
-    virtual ~Controller() override final = default;
+    ~Controller() override final = default;
 
     void start();
 
@@ -26,6 +28,7 @@ private:
 
 private:
     std::unique_ptr<QMainWindow> uMainWindow;
+    QStatusBar* pStatusBar;
 
     InputPane* pInputPane;
     ChannelPane* pChannelPane;

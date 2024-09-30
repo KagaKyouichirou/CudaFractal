@@ -11,7 +11,7 @@ class ChannelCurves: public QOpenGLWidget, protected QOpenGLFunctions
 
 public:
     explicit ChannelCurves();
-    virtual ~ChannelCurves() override final = default;
+    ~ChannelCurves() override final = default;
 
 signals:
     void signalUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);

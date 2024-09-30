@@ -13,6 +13,7 @@ extern QSize const DEFAULT_MAINWINDOW_SIZE;
 Controller::Controller():
     QObject(nullptr),
     uMainWindow(std::make_unique<QMainWindow>(nullptr, Qt::Window)),
+    pStatusBar(new QStatusBar()),
     pInputPane(new InputPane()),
     pChannelPane(new ChannelPane()),
     pTextureView(new TextureView()),
@@ -26,8 +27,11 @@ Controller::Controller():
     auto content = new QSplitter(nullptr);
     content->addWidget(tabs);
     content->addWidget(pTextureView);
+    content->setStretchFactor(0, 1);
+    content->setStretchFactor(1, 2);
 
     uMainWindow->setCentralWidget(content);
+    uMainWindow->setStatusBar(pStatusBar);
 
     // clang-format off
     connect(
@@ -55,8 +59,19 @@ Controller::Controller():
         this, &Controller::slotGLContextInitialized,
         Qt::DirectConnection
     );
+
+    // status messages
+    connect(
+        uRenderingManager.get(), &RenderingManager::signalStatusTemp,
+        pStatusBar, &QStatusBar::showMessage,
+        Qt::QueuedConnection
+    );
+    connect(
+        pInputPane, &InputPane::signalStatusTemp,
+        pStatusBar, &QStatusBar::showMessage,
+        Qt::QueuedConnection
+    );
     // clang-format on
-    connect(pInputPane, &InputPane::signalStatusTemp, [](QString hint) { qDebug() << hint; });
 }
 
 void Controller::start()

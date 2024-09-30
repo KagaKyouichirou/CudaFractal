@@ -12,27 +12,42 @@ class InputPane: public QWidget
 
 public:
     explicit InputPane();
-    virtual ~InputPane() override final = default;
+    ~InputPane() override final = default;
 
 signals:
     void signalAddTask(TaskArgs task);
     void signalExportImage();
-    void signalStatusTemp(QString hint);
+    void signalStatusTemp(QString const& text, int timeout = 0);
 
     void signalSetSplineY(size_t channel, size_t idx, double y);
     void signalUpdateSplineK(size_t channel);
 
-private:    
+private:
     void render();
 
     void setupLayout();
 
 private:
-    QComboBox* inputDimOption;
-    QLineEdit* inputCenterX;
-    QLineEdit* inputCenterY;
-    QLineEdit* inputHalfUnit;
-    QLineEdit* inputIterLimit;
+    // resolution
+    QComboBox* comboDimOption;
+
+    // Center.X
+    QPushButton* signCenterX;
+    QLineEdit* fracCenterX;
+    QComboBox* expoCenterX;
+
+    // Center.Y
+    QPushButton* signCenterY;
+    QLineEdit* fracCenterY;
+    QComboBox* expoCenterY;
+
+    // Half Unit
+    QLineEdit* fracHalfUnit;
+    QComboBox* expoHalfUnit;
+
+    // Iter Limit
+    QLineEdit* lineIterLimit;
+
     QPushButton* bttnRender;
     QPushButton* bttnExport;
 };

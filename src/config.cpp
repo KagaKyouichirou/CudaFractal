@@ -11,31 +11,50 @@ namespace AppConf
 extern constexpr QSize DEFAULT_MAINWINDOW_SIZE{1024, 768};
 
 // <dGrid, dBlock>
-extern QList<std::pair<dim3, dim3>> DIMENSION_OPTIONS{
+extern QList<std::pair<dim3, dim3>> const DIMENSION_OPTIONS{
     {dim3(10, 1080), dim3(192, 1)},  // 1920 x 1080
     {dim3(10, 1440), dim3(256, 1)},  // 2560 x 1440
     {dim3(15, 2160), dim3(256, 1)},  // 3840 x 2160
+    {dim3(64, 64), dim3(8, 8)}, // 512 x 512
 };
 
-extern QString const DEFAULT_CENTER_X{QStringLiteral("-0.7438")};
-extern QString const DEFAULT_CENTER_Y{QStringLiteral("0.148")};
-extern QString const DEFAULT_HALF_UNIT{QStringLiteral("0.000002")};
-extern QString const DEFAULT_ITER_LIMIT{QStringLiteral("4000")};
+extern QList<uint8_t> const FRAC_CAPACITY_OPTIONS{6, 10, 14, 18, 22, 26, 30};
 
-extern constexpr double LOG_NORM_SLIDER_SCALE = 10.0;
-extern constexpr int LOG_NORM_SLIDER_RANGE = 65536;
-extern constexpr int COLOR_RANGE_SIXTH = 1048576;  // pow(2, 20)
-
-extern QString const INPUT_PANE_STYLE{QStringLiteral(R"(
-    * {
-        font-size: 20px;
+extern QString const INPUT_PANE_SIGN_BTTN_STYLE{QStringLiteral(R"(
+    QPushButton {
+        min-width: 24px;
+        min-height: 24px;
+        max-width: 24px;
+        max-height: 24px;
+        border: none;
     }
+)")};
 
+extern QString const INPUT_PANE_LINE_EDIT_STYLE{QStringLiteral(R"(
     QLineEdit {
         background: #D0D0D0;
         border: none;
     }
 )")};
+
+extern QString const INPUT_PANE_STYLE{QStringLiteral(R"(
+    * {
+        font-size: 20px;
+    }
+)")};
+
+extern bool constexpr DEFAULT_SIGN_CENTER_X = false;
+extern QString const DEFAULT_FRAC_CENTER_X{QStringLiteral("16C6672D5AF4159DAC53BB84FEE2061600000")};
+extern int constexpr DEFAULT_EXPO_CENTER_X = 4;
+
+extern bool constexpr DEFAULT_SIGN_CENTER_Y = false;
+extern QString const DEFAULT_FRAC_CENTER_Y{QStringLiteral("294B8C6083878DF7482B5022E82F622000000")};
+extern int constexpr DEFAULT_EXPO_CENTER_Y = 4;
+
+extern QString const DEFAULT_FRAC_HALF_UNIT{QStringLiteral("10000")};
+extern int constexpr DEFAULT_EXPO_HALF_UNIT = 4;
+
+extern QString const DEFAULT_LINE_ITER_LIMIT{QStringLiteral("80000")};
 
 extern QString const CHANNEL_PANE_STYLE{QStringLiteral(R"(
     QSlider::handle:horizontal {
@@ -82,8 +101,6 @@ extern QString const CHANNEL_PANE_STYLE{QStringLiteral(R"(
 
 )")};
 
-extern constexpr int COLOR_SLIDER_HALF_WIDTH = 10;
-
 extern QString const TEXTURE_VIEW_STYLE{QStringLiteral(R"(
     min-width: 200px;
     min-height: 200px;
@@ -93,6 +110,12 @@ extern QString const CHANNEL_CURVES_STYLE{QStringLiteral(R"(
     min-width: 100px;
     min-height: 100px;
 )")};
+
+extern constexpr double LOG_NORM_SLIDER_SCALE = 10.0;
+extern constexpr int LOG_NORM_SLIDER_RANGE = 65536;
+extern constexpr int COLOR_RANGE_SIXTH = 1048576;  // pow(2, 20)
+
+extern constexpr int COLOR_SLIDER_HALF_WIDTH = 10;
 
 extern char const* SHADER_TEXTURE_VIEW_VERTEX =
 #include "shaders/TextureViewVertex.str"

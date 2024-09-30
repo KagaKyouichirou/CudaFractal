@@ -14,7 +14,7 @@ class ChannelPane: public QSplitter
 
 public:
     explicit ChannelPane();
-    virtual ~ChannelPane() override final = default;
+    ~ChannelPane() override final = default;
 
     ChannelArgs* channelArgs() const;
 

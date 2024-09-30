@@ -17,22 +17,23 @@ class RenderingManager: public QObject
 
 public:
     explicit RenderingManager();
-    virtual ~RenderingManager() override final;
+    ~RenderingManager() override final;
 
 public:
     void slotAddTask(TaskArgs task);
-    void slotTaskFinished();
+    void slotTaskFinished(double seconds);
 
 signals:
     void signalTask(TaskArgs task, cudaGraphicsResource* resource);
     void signalSceneRendered(TextureScene* ts);
+    void signalStatusTemp(QString const& text, int timeout = 0);
 
 private:
     void runTask();
 
 private:
     std::unique_ptr<QThread> uThread;
-    std::unique_ptr<Renderer> uRenderer;
+    Renderer* pRenderer;
 
     bool flagBusy;
     std::unique_ptr<TextureScene> uScene;
@@ -46,11 +47,11 @@ class Renderer: public QObject
 
 public:
     explicit Renderer();
-    virtual ~Renderer() override final = default;
+    ~Renderer() override final = default;
 
 public:
     void slotTask(TaskArgs task, cudaGraphicsResource* resource);
 
 signals:
-    void signalTaskFinished();
+    void signalTaskFinished(double seconds);
 };

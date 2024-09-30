@@ -21,7 +21,7 @@ class ExportingManager: public QObject
 
 public:
     explicit ExportingManager();
-    virtual ~ExportingManager() override final;
+    ~ExportingManager() override final;
 
     void initialize(QOpenGLContext* context);
     void requestExporting(std::shared_ptr<TextureScene> scene, ChannelArgs* args, QIODevice* output);
@@ -40,7 +40,7 @@ signals:
 
 private:
     std::unique_ptr<QThread> uThread;
-    std::unique_ptr<ImageExporter> uExporter;
+    ImageExporter* pExporter;
 
     std::unique_ptr<QOffscreenSurface> uSurface;
 
@@ -53,7 +53,7 @@ class ImageExporter: public QObject, protected QOpenGLFunctions
 
 public:
     explicit ImageExporter();
-    virtual ~ImageExporter() override final = default;
+    ~ImageExporter() override final = default;
 
 public:
     void slotContextInit(QOpenGLContext* context, QOffscreenSurface* surface);
