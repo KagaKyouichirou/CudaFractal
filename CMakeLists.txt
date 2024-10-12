@@ -37,6 +37,8 @@ add_custom_target(WrapGlslAsLiteral
 )
 add_dependencies(CudaFractal WrapGlslAsLiteral)
 
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -dlto -Xptxas=-v")
+
 set_target_properties(CudaFractal PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_ARCHITECTURES native

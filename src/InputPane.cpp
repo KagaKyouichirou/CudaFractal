@@ -1,6 +1,6 @@
 #include "InputPane.h"
 
-#include "cuda/FixedPoint8U30Naive.h"
+#include "cuda/FixedPoint8U30.h"
 
 #include <vector_types.h>
 #include <QFontMetrics>
@@ -139,7 +139,7 @@ InputPane::InputPane():
     lineIterLimit->setText(AppConf::DEFAULT_LINE_ITER_LIMIT);
 }
 
-FixedPoint8U30Naive parseFixedPoint(QByteArray hex, uint8_t c, bool& ok)
+FixedPoint8U30 parseFixedPoint(QByteArray hex, uint8_t c, bool& ok)
 {
     auto arr = QByteArray::fromHex(hex);
     if (arr.length() <= c) {
@@ -147,12 +147,12 @@ FixedPoint8U30Naive parseFixedPoint(QByteArray hex, uint8_t c, bool& ok)
         size_t len = arr.length();
         size_t offset = c - len;
         std::memcpy(bytes.data() + offset, arr.data(), len);
-        auto res = FixedPoint8U30Naive::fromBytes(bytes, false);
+        auto res = FixedPoint8U30::fromBytes(bytes);
         ok = res.reasonable();
         return res;
     } else {
         ok = false;
-        return FixedPoint8U30Naive();
+        return FixedPoint8U30();
     }
 }
 
@@ -160,7 +160,7 @@ void InputPane::render()
 {
     bool ok = false;
     // Center.X
-    FixedPoint8U30Naive x;
+    FixedPoint8U30 x;
     {
         if (fracCenterX->text().isEmpty()) {
             emit signalStatusTemp(QStringLiteral("Missing input for Center.X"));
@@ -171,8 +171,8 @@ void InputPane::render()
         x = parseFixedPoint(fracCenterX->text().toUtf8(), capacityCenterX, ok);
         if (ok) {
             if (signCenterX->isChecked()) {
-                static FixedPoint8U30Naive const boundTwo{
-                    FixedPoint8U30Naive::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 8}, false)
+                static FixedPoint8U30 const boundTwo{
+                    FixedPoint8U30::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 8})
                 };
                 if (x.exceeds(boundTwo)) {
                     emit signalStatusTemp(errCenterX);
@@ -180,8 +180,8 @@ void InputPane::render()
                 }
                 x.flip();
             } else {
-                static FixedPoint8U30Naive const boundOne{
-                    FixedPoint8U30Naive::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 4}, false)
+                static FixedPoint8U30 const boundOne{
+                    FixedPoint8U30::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 4})
                 };
                 if (x.exceeds(boundOne)) {
                     emit signalStatusTemp(errCenterX);
@@ -194,7 +194,7 @@ void InputPane::render()
         }
     }
     // Center.Y
-    FixedPoint8U30Naive y;
+    FixedPoint8U30 y;
     {
         if (fracCenterY->text().isEmpty()) {
             emit signalStatusTemp(QStringLiteral("Missing input for Center.Y"));
@@ -204,8 +204,8 @@ void InputPane::render()
         auto capacityCenterY = AppConf::FRAC_CAPACITY_OPTIONS[expoCenterY->currentIndex()];
         y = parseFixedPoint(fracCenterY->text().toUtf8(), capacityCenterY, ok);
         if (ok) {
-            static FixedPoint8U30Naive const boundOneAndHalf{
-                FixedPoint8U30Naive::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 6}, false)
+            static FixedPoint8U30 const boundOneAndHalf{
+                FixedPoint8U30::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 6})
             };
             if (y.exceeds(boundOneAndHalf)) {
                 emit signalStatusTemp(errCenterY);
@@ -220,7 +220,7 @@ void InputPane::render()
         }
     }
     // Half Unit
-    FixedPoint8U30Naive h;
+    FixedPoint8U30 h;
     {
         if (fracHalfUnit->text().isEmpty()) {
             emit signalStatusTemp(QStringLiteral("Missing input for Half-Unit"));
@@ -229,9 +229,9 @@ void InputPane::render()
         static QString const errHalfUnit = QStringLiteral("Half-Unit should be within the range (0.0, 2^-8]");
         auto capacityHalfUnit = AppConf::FRAC_CAPACITY_OPTIONS[expoHalfUnit->currentIndex()];
         h = parseFixedPoint(fracHalfUnit->text().toUtf8(), capacityHalfUnit, ok);
-        if (ok && !h.zero()) {
-            static FixedPoint8U30Naive const boundOneByth{
-                FixedPoint8U30Naive::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 0, 4}, false)
+        if (ok && h.nonzero()) {
+            static FixedPoint8U30 const boundOneByth{
+                FixedPoint8U30::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 0, 4})
             };
             if (h.exceeds(boundOneByth)) {
                 emit signalStatusTemp(errHalfUnit);
@@ -242,7 +242,7 @@ void InputPane::render()
             return;
         }
     }
-    auto l = lineIterLimit->text().toInt(&ok);
+    unsigned int l = lineIterLimit->text().toInt(&ok);
     if (!(ok && l <= 300000)) {
         emit signalStatusTemp(QStringLiteral("Iter-Limit should be at least 1 and not exceeding 300000"));
         return;

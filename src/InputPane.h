@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TaskArgs.h"
+#include "cuda/TaskArgs.h"
 
 #include <QComboBox>
 #include <QLineEdit>

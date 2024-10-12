@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     return app.exec();
 
     // {
-    //     FixedPoint8U30Naive half = FixedPoint8U30Naive::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 0, 2}, false);
+    //     FixedPoint8U30 half = FixedPoint8U30::fromBytes(std::array<uint8_t, 30>{0, 0, 0, 0, 2}, false);
     //     auto oX = half;
     //     oX.mul(1023);
     //     oX.flip();
@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     //     auto imgn2 = imgn;
     //     imgn2.sqr();
     //     uint16_t k = 0;
-    //     while (k < 2 && FixedPoint8U30Naive::checkNorm(real2, imgn2)) {
+    //     while (k < 2 && FixedPoint8U30::checkNorm(real2, imgn2)) {
     //         imgn.mul(real);
     //         imgn.dou();
     //         imgn.add(eY);

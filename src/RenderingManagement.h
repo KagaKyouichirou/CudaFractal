@@ -1,7 +1,7 @@
 #pragma once
 
-#include "TaskArgs.h"
 #include "TextureScene.h"
+#include "cuda/TaskArgs.h"
 
 #include <cuda_runtime.h>
 

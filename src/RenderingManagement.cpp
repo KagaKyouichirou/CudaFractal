@@ -7,6 +7,8 @@
 #include <cuda_gl_interop.h>
 #include <QElapsedTimer>
 
+#include <QDebug>
+
 RenderingManager::RenderingManager():
     QObject(nullptr),
     uThread(std::make_unique<QThread>()),
@@ -113,18 +115,14 @@ void Renderer::slotTask(TaskArgs task, cudaGraphicsResource* resource)
     cudaSurfaceObject_t surf;
     cudaCreateSurfaceObject(&surf, &surfRes);
 
-    auto oX = task.h;
-    oX.mul(task.dGrid.x * task.dBlock.x - 1);
-    oX.flip();
-    oX.add(task.x);
-    auto oY = task.h;
-    oY.mul(task.dGrid.y * task.dBlock.y - 1);
-    oY.flip();
-    oY.add(task.y);
-    auto step = task.h;
-    step.dou();
-    launchMandelbrotKernel(task.dGrid, task.dBlock, surf, &oX, &oY, &step, task.limit);
+    launchKernelMandelbrot(surf, &task);
+
+    //launchKernelMandelbrotWarpWise(surf, &task);
+
     cudaDeviceSynchronize();
+    auto err = cudaGetLastError();
+    qDebug() << cudaGetErrorName(err);
+
     cudaDestroySurfaceObject(surf);
 
     auto seconds = static_cast<double>(timer.elapsed()) / 1000;
