@@ -108,8 +108,8 @@ void ImageExporter::slotContextInit(QOpenGLContext* ctx, QOffscreenSurface* surf
 
     attrVertexCoord = uShader->attributeLocation("vertexCoord");
     unifPoints = uShader->uniformLocation("points");
-    unifLogF = uShader->uniformLocation("logFactor");
-    unifLogN = uShader->uniformLocation("logNorm");
+    unifNormF = uShader->uniformLocation("normFactor");
+    unifNormR = uShader->uniformLocation("normRange");
     unifSpY = uShader->uniformLocation("splineY");
     unifSpK = uShader->uniformLocation("splineK");
 
@@ -141,8 +141,8 @@ void ImageExporter::slotStartExporting(
     vertexBuffer.release();
 
     uShader->setUniformValue(unifPoints, 0);
-    uShader->setUniformValue(unifLogF, static_cast<float>(args->logFactor));
-    uShader->setUniformValue(unifLogN, static_cast<float>(args->logNorm));
+    uShader->setUniformValue(unifNormF, static_cast<float>(args->normFactor));
+    uShader->setUniformValue(unifNormR, static_cast<float>(args->normRange));
     uShader->setUniformValueArray(unifSpY, args->splineY.data(), 7);
     uShader->setUniformValueArray(unifSpK, args->splineK.data(), 7);
 

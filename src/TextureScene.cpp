@@ -1,7 +1,5 @@
 #include "TextureScene.h"
 
-#include <QDebug>
-
 TextureScene::TextureScene(QOpenGLTexture::Target target): QOpenGLTexture(target), tX(0.0), tY(0.0), s(1.0) {}
 
 double TextureScene::translateX() const

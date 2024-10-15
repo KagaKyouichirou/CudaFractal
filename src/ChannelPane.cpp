@@ -5,8 +5,8 @@
 
 namespace AppConf
 {
-extern double const LOG_NORM_SLIDER_SCALE;
-extern int const LOG_NORM_SLIDER_RANGE;
+extern double const GREY_NORM_SLIDER_SCALE;
+extern int const GREY_NORM_SLIDER_RANGE_HALF;
 extern int const COLOR_RANGE_SIXTH;
 extern QString const CHANNEL_PANE_STYLE;
 extern int const COLOR_SLIDER_HALF_WIDTH;
@@ -23,11 +23,10 @@ ChannelPane::ChannelPane():
     args()
 {
     setStyleSheet(AppConf::CHANNEL_PANE_STYLE);
-
-    sliderLogCurve->setRange(0, AppConf::LOG_NORM_SLIDER_RANGE);
+    sliderLogCurve->setRange(0, 2 * AppConf::GREY_NORM_SLIDER_RANGE_HALF);
     connect(sliderLogCurve, &QSlider::valueChanged, [this](int value) {
-        args.logFactor = qExp(AppConf::LOG_NORM_SLIDER_SCALE * value / AppConf::LOG_NORM_SLIDER_RANGE);
-        args.logNorm = 1.0 / qLn(1.0 + args.logFactor);
+        args.normFactor = AppConf::GREY_NORM_SLIDER_SCALE * (static_cast<float>(value) / AppConf::GREY_NORM_SLIDER_RANGE_HALF - 1.0);
+        args.normRange = qExp(args.normFactor) - 1;
         emit signalUpdateGraphics();
     });
 
@@ -73,10 +72,10 @@ ChannelArgs* ChannelPane::channelArgs() const
     return new ChannelArgs(args);
 }
 
-void ChannelPane::slotUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK)
+void ChannelPane::slotUploadUnif(QOpenGLShaderProgram* sh, int unifNormF, int unifNormR, int unifSpY, int unifSpK)
 {
-    sh->setUniformValue(unifLogF, static_cast<float>(args.logFactor));
-    sh->setUniformValue(unifLogN, static_cast<float>(args.logNorm));
+    sh->setUniformValue(unifNormF, static_cast<float>(args.normFactor));
+    sh->setUniformValue(unifNormR, static_cast<float>(args.normRange));
     sh->setUniformValueArray(unifSpY, args.splineY.data(), 7);
     sh->setUniformValueArray(unifSpK, args.splineK.data(), 7);
 }
@@ -107,10 +106,10 @@ void ChannelPane::updateSplineK(size_t channel)
 void ChannelPane::resetColorSliders()
 {
     sliderLogCurve->blockSignals(true);
-    sliderLogCurve->setValue(0);
+    sliderLogCurve->setValue(AppConf::GREY_NORM_SLIDER_RANGE_HALF);
+    args.normFactor = 0.0;
+    args.normRange = 0.0;
     sliderLogCurve->blockSignals(false);
-    args.logFactor = 1.0;
-    args.logNorm = 1.0 / qLn(2.0);
     for (size_t idx = 0; idx < 7; idx++) {
         for (size_t channel = 0; channel < 3; channel++) {
             auto slider = sliderChannelKnot[idx][channel];

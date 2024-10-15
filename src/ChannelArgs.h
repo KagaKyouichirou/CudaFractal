@@ -5,11 +5,11 @@
 
 struct ChannelArgs
 {
-    double logFactor;
-    double logNorm;
+    double normFactor;
+    double normRange;
 
     std::array<QVector3D, 7> splineY;
     std::array<QVector3D, 7> splineK;
 
-    explicit ChannelArgs(): logFactor(0.0), logNorm(1.0), splineY(), splineK() {}
+    explicit ChannelArgs(): normFactor(0.0), normRange(0.0), splineY(), splineK() {}
 };

@@ -19,7 +19,7 @@ public:
     ChannelArgs* channelArgs() const;
 
 public:
-    void slotUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);
+    void slotUploadUnif(QOpenGLShaderProgram* sh, int unifNormF, int unifNormR, int unifSpY, int unifSpK);
 
 signals:
     void signalUpdateGraphics();

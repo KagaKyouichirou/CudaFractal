@@ -45,8 +45,8 @@ void ChannelCurves::initializeGL()
         return;
     }
     attrVertexCoord = shaderProgram->attributeLocation("vertexCoord");
-    unifLogF = shaderProgram->uniformLocation("logFactor");
-    unifLogN = shaderProgram->uniformLocation("logNorm");
+    unifNormF = shaderProgram->uniformLocation("normFactor");
+    unifNormR = shaderProgram->uniformLocation("normRange");
     unifSpY = shaderProgram->uniformLocation("splineY");
     unifSpK = shaderProgram->uniformLocation("splineK");
     unifStrokePeak = shaderProgram->uniformLocation("strokePeak");
@@ -67,7 +67,7 @@ void ChannelCurves::paintGL()
     shaderProgram->setAttributeBuffer(attrVertexCoord, GL_FLOAT, 0, 2, 0);
     vertexBuffer.release();
 
-    emit signalUploadUnif(shaderProgram, unifLogF, unifLogN, unifSpY, unifSpK);
+    emit signalUploadUnif(shaderProgram, unifNormF, unifNormR, unifSpY, unifSpK);
     shaderProgram->setUniformValue(unifStrokePeak, AppConf::CHANNEL_CURVES_STROKE_PEAK);
     // stroke-width is fixed in pixels, not relative to viewport size
     auto norm = AppConf::CHANNEL_CURVES_STROKE_NORM * viewportW;

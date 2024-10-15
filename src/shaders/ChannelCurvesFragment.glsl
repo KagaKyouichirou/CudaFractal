@@ -1,7 +1,7 @@
 #version 400 core
 
-uniform float logFactor;
-uniform float logNorm;
+uniform float normFactor;
+uniform float normRange;
 uniform vec3 splineY[7];
 uniform vec3 splineK[7];
 
@@ -32,30 +32,28 @@ void main()
     vec3 f = e * y0 + t * y1 + e * t * (e * a + t * b);
     f = abs(f - coord.y) * aspectRatio * strokeNorm;
     vec3 d2 = f * f;
-    // 1st derivative
+    // slope
     vec3 q = s + (e - t) * (e * a + t * b) + e * t * (b - a);
     q *= 6.0 * aspectRatio;
-    // distance to tangent line and normalized
+    // distance to tangent line; normalized
     d2 /= (1.0 + q * q);
 
     vec3 rgb = clamp((1.0 - 4 * d2) * strokePeak, 0.0, 1.0);
 
-    // draw y = ln(1 + Wx) / (1 + W)
-    float xScaled = logFactor * coord.x;
-    float logXScaledPlusOne = log(1.0 + xScaled);
-    float key = aspectRatio * logNorm - 1.0 / logFactor;
-    float diff;
+    // draw y = [(e^(px) - 1)] / [e^p - 1] where p is normFactor and e^p - 1 is pre-computed as normRange
+    float eval;
     float slope;
-    if (coord.x >= 0.0 * key) {
-        diff = abs(logXScaledPlusOne * logNorm - coord.y) * aspectRatio;
-        slope = logFactor * logNorm / (1.0 + xScaled) * aspectRatio;
+    if (abs(normRange) >= 0.00001) {
+        float core = exp(normFactor * coord.x);
+        eval = (core - 1.0) / normRange;
+        slope = normFactor * core / normRange;
     } else {
-        // use x = (exp(y / aspectRatio * ln(1 + W)) - 1) / W instead
-        float core = exp(logXScaledPlusOne * coord.y / aspectRatio);
-        diff = abs((core - 1.0) / logFactor - coord.x);
-        slope = core / (aspectRatio * logFactor * logNorm);
+        // degenerates to y = x + (e^p - 1) * x(x - 1) / 2
+        eval = normRange * coord.x * (coord.x - 1) * 0.5 + coord.x;
+        slope = normRange * (coord.x - 0.5) + 1.0;
     }
-    diff *= strokeNorm;
+    float diff = abs(eval - coord.y) * aspectRatio * strokeNorm;
+    slope *= aspectRatio;
     float dist2 = diff * diff / (1.0 + slope * slope);
     float res = clamp((1.0 - 4 * dist2) * strokePeak, 0.0, 1.0);
     rgb += vec3(res, res, res);

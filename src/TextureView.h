@@ -27,7 +27,7 @@ public:
 
 signals:
     void signalGLContextInitialized(QOpenGLContext* ctx);
-    void signalUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);
+    void signalUploadUnif(QOpenGLShaderProgram* sh, int unifNormF, int unifNormR, int unifSpY, int unifSpK);
 
 protected:
     void focusOutEvent(QFocusEvent* event) override final;
@@ -58,8 +58,8 @@ private:
     int attrTextureCoord;
     int unifMatrixProj;
     int unifPoints;
-    int unifLogF;
-    int unifLogN;
+    int unifNormF;
+    int unifNormR;
     int unifSpY;
     int unifSpK;
 };

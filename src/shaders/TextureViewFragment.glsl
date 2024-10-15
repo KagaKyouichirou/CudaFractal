@@ -2,8 +2,8 @@
 
 uniform sampler2D points;
 
-uniform float logFactor;
-uniform float logNorm;
+uniform float normFactor;
+uniform float normRange;
 uniform vec3 splineY[7];
 uniform vec3 splineK[7];
 
@@ -17,7 +17,8 @@ void main()
         color = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
-    float t = clamp(6.0 * log(logFactor * u + 1.0) * logNorm, 0.0, 5.9999995);
+    float eval = abs(normRange) >= 0.00001 ? (exp(normFactor * u) - 1) / normRange : (normRange * u * (u - 1.0) * 0.5 + u);
+    float t = clamp(6.0 * eval, 0.0, 5.9999995);
     int i = int(t);
     t -= i;
     float e = 1.0 - t;

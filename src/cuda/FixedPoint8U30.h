@@ -57,28 +57,28 @@ public:
     __host__ __device__ __forceinline__ void mul(uint64_t f)
     {
         uint64_t c = f * data[0];
-        data[0] = c & 0x3FFFFFFF;
+        data[0] = static_cast<uint32_t>(c) & 0x3FFFFFFF;
         c >>= 30;
         c += f * data[1];
-        data[1] = c & 0x3FFFFFFF;
+        data[1] = static_cast<uint32_t>(c) & 0x3FFFFFFF;
         c >>= 30;
         c += f * data[2];
-        data[2] = c & 0x3FFFFFFF;
+        data[2] = static_cast<uint32_t>(c) & 0x3FFFFFFF;
         c >>= 30;
         c += f * data[3];
-        data[3] = c & 0x3FFFFFFF;
+        data[3] = static_cast<uint32_t>(c) & 0x3FFFFFFF;
         c >>= 30;
         c += f * data[4];
-        data[4] = c & 0x3FFFFFFF;
+        data[4] = static_cast<uint32_t>(c) & 0x3FFFFFFF;
         c >>= 30;
         c += f * data[5];
-        data[5] = c & 0x3FFFFFFF;
+        data[5] = static_cast<uint32_t>(c) & 0x3FFFFFFF;
         c >>= 30;
         c += f * data[6];
-        data[6] = c & 0x3FFFFFFF;
+        data[6] = static_cast<uint32_t>(c) & 0x3FFFFFFF;
         c >>= 30;
         c += f * data[7];
-        data[7] = c & 0x3FFFFFFF;
+        data[7] = static_cast<uint32_t>(c) & 0x3FFFFFFF;
     }
 
     /* zero-initialized instance */

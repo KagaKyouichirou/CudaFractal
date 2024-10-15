@@ -16,10 +16,6 @@ extern QList<std::pair<dim3, dim3>> const DIMENSION_OPTIONS{
     {dim3(10, 1440), dim3(256, 1)},  // 2560 x 1440
     {dim3(15, 2160), dim3(256, 1)},  // 3840 x 2160
     {dim3(16, 32), dim3(32, 16)},    // 512 x 512
-    {dim3(256, 128), dim3(2, 4)},    // 512 x 512
-    {dim3(80, 1080), dim3(24, 1)},   // 1920 x 1080
-    {dim3(40, 1440), dim3(64, 1)},   // 2560 x 1440
-    {dim3(60, 2160), dim3(64, 1)},   // 3840 x 2160
 };
 
 extern QList<uint8_t> const FRAC_CAPACITY_OPTIONS{6, 10, 14, 18, 22, 26, 30};
@@ -47,31 +43,31 @@ extern QString const INPUT_PANE_STYLE{QStringLiteral(R"(
     }
 )")};
 
-// extern bool constexpr DEFAULT_SIGN_CENTER_X = false;
-// extern QString const DEFAULT_FRAC_CENTER_X{QStringLiteral("0")};
-// extern int constexpr DEFAULT_EXPO_CENTER_X = 0;
-
-// extern bool constexpr DEFAULT_SIGN_CENTER_Y = false;
-// extern QString const DEFAULT_FRAC_CENTER_Y{QStringLiteral("0")};
-// extern int constexpr DEFAULT_EXPO_CENTER_Y = 0;
-
-// extern QString const DEFAULT_FRAC_HALF_UNIT{QStringLiteral("400")};
-// extern int constexpr DEFAULT_EXPO_HALF_UNIT = 0;
-
-// extern QString const DEFAULT_LINE_ITER_LIMIT{QStringLiteral("2")};
-
 extern bool constexpr DEFAULT_SIGN_CENTER_X = false;
-extern QString const DEFAULT_FRAC_CENTER_X{QStringLiteral("16C6672D5AF4159DAC53BB84FEE2061600000")};
-extern int constexpr DEFAULT_EXPO_CENTER_X = 4;
+extern QString const DEFAULT_FRAC_CENTER_X{QStringLiteral("0")};
+extern int constexpr DEFAULT_EXPO_CENTER_X = 0;
 
 extern bool constexpr DEFAULT_SIGN_CENTER_Y = false;
-extern QString const DEFAULT_FRAC_CENTER_Y{QStringLiteral("294B8C6083878DF7482B5022E82F622000000")};
-extern int constexpr DEFAULT_EXPO_CENTER_Y = 4;
+extern QString const DEFAULT_FRAC_CENTER_Y{QStringLiteral("0")};
+extern int constexpr DEFAULT_EXPO_CENTER_Y = 0;
 
-extern QString const DEFAULT_FRAC_HALF_UNIT{QStringLiteral("10000")};
-extern int constexpr DEFAULT_EXPO_HALF_UNIT = 4;
+extern QString const DEFAULT_FRAC_HALF_UNIT{QStringLiteral("200")};
+extern int constexpr DEFAULT_EXPO_HALF_UNIT = 0;
 
-extern QString const DEFAULT_LINE_ITER_LIMIT{QStringLiteral("80000")};
+extern QString const DEFAULT_LINE_ITER_LIMIT{QStringLiteral("4000")};
+
+// extern bool constexpr DEFAULT_SIGN_CENTER_X = false;
+// extern QString const DEFAULT_FRAC_CENTER_X{QStringLiteral("16C6672D5AF4159DAC53BB84FEE2061532328BFF00000")};
+// extern int constexpr DEFAULT_EXPO_CENTER_X = 5;
+
+// extern bool constexpr DEFAULT_SIGN_CENTER_Y = false;
+// extern QString const DEFAULT_FRAC_CENTER_Y{QStringLiteral("294B8C6083878DF7482B5022E82F62230207B57000000")};
+// extern int constexpr DEFAULT_EXPO_CENTER_Y = 5;
+
+// extern QString const DEFAULT_FRAC_HALF_UNIT{QStringLiteral("40000")};
+// extern int constexpr DEFAULT_EXPO_HALF_UNIT = 5;
+
+// extern QString const DEFAULT_LINE_ITER_LIMIT{QStringLiteral("120000")};
 
 extern QString const CHANNEL_PANE_STYLE{QStringLiteral(R"(
     QSlider::handle:horizontal {
@@ -128,8 +124,8 @@ extern QString const CHANNEL_CURVES_STYLE{QStringLiteral(R"(
     min-height: 100px;
 )")};
 
-extern constexpr double LOG_NORM_SLIDER_SCALE = 10.0;
-extern constexpr int LOG_NORM_SLIDER_RANGE = 65536;
+extern constexpr double GREY_NORM_SLIDER_SCALE = 10.0;
+extern constexpr int GREY_NORM_SLIDER_RANGE_HALF = 65536;
 extern constexpr int COLOR_RANGE_SIXTH = 1048576;  // pow(2, 20)
 
 extern constexpr int COLOR_SLIDER_HALF_WIDTH = 10;

@@ -15,12 +15,16 @@ __global__ void kernelMandelbrot(cudaSurfaceObject_t surf, ArgData const* data, 
 {
     auto x = blockIdx.x * blockDim.x + threadIdx.x;
     auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
     auto eX = data->step;
     eX.mul(x);
     eX.add(data->oX);
+    eX.carry();
     auto eY = data->step;
     eY.mul(y);
     eY.add(data->oY);
+    eY.carry();
+
     auto real = FixedPoint8U30::zero();
     auto imgn = FixedPoint8U30::zero();
     int k = 0;
@@ -41,7 +45,7 @@ __global__ void kernelMandelbrot(cudaSurfaceObject_t surf, ArgData const* data, 
         if (norm2.escaping()) {
             break;
         }
-        // imgn = 2 * imgn * real; turn result into signed form
+        // imgn = 2 * imgn * real; keep result in signed form
         imgn.dmul(imgn, real);
         if (sign_real ^ sign_imgn) {
             imgn.flip();
@@ -49,7 +53,7 @@ __global__ void kernelMandelbrot(cudaSurfaceObject_t surf, ArgData const* data, 
         // real = real2 - imgn2; keep result in signed form
         real.flip(imgn2);
         real.add(real2);
-        
+
         k++;
     }
     surf2Dwrite(static_cast<float>(k) / limit, surf, x * sizeof(float), y, cudaBoundaryModeTrap);

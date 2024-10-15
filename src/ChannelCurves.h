@@ -14,7 +14,7 @@ public:
     ~ChannelCurves() override final = default;
 
 signals:
-    void signalUploadUnif(QOpenGLShaderProgram* sh, int unifLogF, int unifLogN, int unifSpY, int unifSpK);
+    void signalUploadUnif(QOpenGLShaderProgram* sh, int unifNormF, int unifNormR, int unifSpY, int unifSpK);
 
 protected:
     void initializeGL() override final;
@@ -29,8 +29,8 @@ private:
     QOpenGLBuffer vertexBuffer;
 
     int attrVertexCoord;
-    int unifLogF;
-    int unifLogN;
+    int unifNormF;
+    int unifNormR;
     int unifSpY;
     int unifSpK;
     int unifStrokePeak;

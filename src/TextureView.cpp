@@ -165,8 +165,8 @@ void TextureView::initializeGL()
     attrTextureCoord = uShader->attributeLocation("textureCoord");
     unifMatrixProj = uShader->uniformLocation("matrixProj");
     unifPoints = uShader->uniformLocation("points");
-    unifLogF = uShader->uniformLocation("logFactor");
-    unifLogN = uShader->uniformLocation("logNorm");
+    unifNormF = uShader->uniformLocation("normFactor");
+    unifNormR = uShader->uniformLocation("normRange");
     unifSpY = uShader->uniformLocation("splineY");
     unifSpK = uShader->uniformLocation("splineK");
 }
@@ -217,7 +217,7 @@ void TextureView::paintGL()
     uShader->setUniformValue(unifMatrixProj, matrixProj);
 
     uShader->setUniformValue(unifPoints, 0);
-    emit signalUploadUnif(uShader.get(), unifLogF, unifLogN, unifSpY, unifSpK);
+    emit signalUploadUnif(uShader.get(), unifNormF, unifNormR, unifSpY, unifSpK);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

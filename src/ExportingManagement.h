@@ -73,8 +73,8 @@ private:
     QOpenGLBuffer vertexBuffer;
     int attrVertexCoord;
     int unifPoints;
-    int unifLogF;
-    int unifLogN;
+    int unifNormF;
+    int unifNormR;
     int unifSpY;
     int unifSpK;
 };
