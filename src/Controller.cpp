@@ -8,6 +8,7 @@
 namespace AppConf
 {
 extern QSize const DEFAULT_MAINWINDOW_SIZE;
+extern QString const TAB_PANE_STYLE;
 }  // namespace AppConf
 
 Controller::Controller():
@@ -21,8 +22,9 @@ Controller::Controller():
     uExportingManager(std::make_unique<ExportingManager>())
 {
     auto tabs = new QTabWidget(nullptr);
-    tabs->addTab(pInputPane, QStringLiteral("Calculation Input"));
-    tabs->addTab(pChannelPane, QStringLiteral("Color Channels"));
+    tabs->setStyleSheet(AppConf::TAB_PANE_STYLE);
+    tabs->addTab(pInputPane, QStringLiteral("Task Input"));
+    tabs->addTab(pChannelPane, QStringLiteral("Color Config"));
 
     auto content = new QSplitter(nullptr);
     content->addWidget(tabs);
@@ -76,8 +78,8 @@ Controller::Controller():
 
 void Controller::start()
 {
-    uMainWindow->show();
     uMainWindow->resize(AppConf::DEFAULT_MAINWINDOW_SIZE);
+    uMainWindow->show();
 }
 
 void Controller::slotGLContextInitialized(QOpenGLContext* context)

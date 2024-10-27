@@ -8,7 +8,13 @@
 namespace AppConf
 {
 
-extern constexpr QSize DEFAULT_MAINWINDOW_SIZE{1024, 768};
+extern constexpr QSize DEFAULT_MAINWINDOW_SIZE{1700, 1000};
+
+extern QString const TAB_PANE_STYLE{QStringLiteral(R"(
+    QTabBar::tab {
+        font-size: 20px;
+    }
+)")};
 
 // <dGrid, dBlock>
 extern QList<std::pair<dim3, dim3>> const DIMENSION_OPTIONS{
@@ -124,7 +130,7 @@ extern QString const CHANNEL_CURVES_STYLE{QStringLiteral(R"(
     min-height: 100px;
 )")};
 
-extern constexpr double GREY_NORM_SLIDER_SCALE = 10.0;
+extern constexpr double GREY_NORM_SLIDER_SCALE = 20.0;
 extern constexpr int GREY_NORM_SLIDER_RANGE_HALF = 65536;
 extern constexpr int COLOR_RANGE_SIXTH = 1048576;  // pow(2, 20)
 
