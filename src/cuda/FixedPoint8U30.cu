@@ -92,16 +92,6 @@ uint32_t const* FixedPoint8U30::raw() const
     return data;
 }
 
-// __device__ __forceinline__ bool FixedPoint8U30::abs()
-// {
-//     bool sign = data[7] >= 0x20000000;
-//     if (sign) {
-//         flip();
-//         carry();
-//     }
-//     return sign;
-// }
-
 bool FixedPoint8U30::reasonable() const
 {
     return data[7] < 4;

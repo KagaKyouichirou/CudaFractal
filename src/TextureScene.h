@@ -6,7 +6,7 @@ class TextureScene: public QOpenGLTexture
 {
 public:
     explicit TextureScene(QOpenGLTexture::Target target);
-    ~TextureScene() = default;
+    ~TextureScene();
 
 public:
     double translateX() const;

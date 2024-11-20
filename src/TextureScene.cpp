@@ -2,6 +2,13 @@
 
 TextureScene::TextureScene(QOpenGLTexture::Target target): QOpenGLTexture(target), tX(0.0), tY(0.0), s(1.0) {}
 
+TextureScene::~TextureScene()
+{
+    if (isCreated()) {
+        destroy();
+    }
+}
+
 double TextureScene::translateX() const
 {
     return tX;
